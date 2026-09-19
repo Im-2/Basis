@@ -1,7 +1,7 @@
 import type { PriceAlert } from "@/lib/types";
 
 const toneStyles: Record<PriceAlert["tone"], string> = {
-  premium: "bg-white",
+  premium: "bg-accent",
   discount: "bg-white/60",
   neutral: "bg-white/35",
 };

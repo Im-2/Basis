@@ -17,7 +17,7 @@ export function SpreadHistoryChart({ data, symbol }: { data: SpreadHistoryPoint[
             Mark Price
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-white" />
+            <span className="h-2 w-2 rounded-full bg-accent" />
             DEX Price
           </span>
         </div>
@@ -38,7 +38,7 @@ export function SpreadHistoryChart({ data, symbol }: { data: SpreadHistoryPoint[
               labelStyle={{ color: "#989898" }}
             />
             <Line type="monotone" dataKey="markPrice" stroke="rgba(255,255,255,0.35)" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="dexPrice" stroke="#FFFFFF" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="dexPrice" stroke="#3B82F6" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
