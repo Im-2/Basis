@@ -1,9 +1,9 @@
 import type { PriceAlert } from "@/lib/types";
 
 const toneStyles: Record<PriceAlert["tone"], string> = {
-  premium: "bg-accent",
-  discount: "bg-accent-pink",
-  neutral: "bg-white/40",
+  premium: "bg-white",
+  discount: "bg-white/60",
+  neutral: "bg-white/35",
 };
 
 export function PriceAlerts({ alerts }: { alerts: PriceAlert[] }) {

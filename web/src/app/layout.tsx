@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-const interTight = localFont({
-  src: "./fonts/InterTight-Variable.woff2",
-  weight: "400 600",
-  variable: "--font-inter-tight",
+const geist = localFont({
+  src: "./fonts/Geist-Variable.woff2",
+  weight: "400 700",
+  variable: "--font-geist",
   display: "swap",
 });
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={interTight.variable}>
+    <html lang="en" className={geist.variable}>
       <body className="bg-background text-foreground antialiased">{children}</body>
     </html>
   );

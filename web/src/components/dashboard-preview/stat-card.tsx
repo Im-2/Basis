@@ -17,7 +17,7 @@ export function StatCard({ label, value, trend, trendLabel, icon }: Omit<HeroSta
       </div>
       <p className="mt-3 text-sm text-muted">{label}</p>
       <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
-      <p className={`mt-1 flex items-center gap-1 text-xs ${trend === "up" ? "text-emerald-400" : "text-rose-400"}`}>
+      <p className={`mt-1 flex items-center gap-1 text-xs ${trend === "up" ? "text-white/80" : "text-muted"}`}>
         <TrendIcon className="h-3 w-3" />
         {trendLabel}
       </p>

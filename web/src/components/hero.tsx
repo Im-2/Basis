@@ -11,7 +11,7 @@ export function Hero() {
 
       <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 pb-8 pt-28 text-center sm:pt-32 lg:px-8">
         <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/70 backdrop-blur">
-          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+          <span className="h-1.5 w-1.5 rounded-full bg-white" />
           Live On-Chain · Tessera Pre-IPO Tokens
         </span>
 
@@ -29,7 +29,7 @@ export function Hero() {
         <div className="mt-7 flex flex-col items-center gap-4 sm:flex-row">
           <a
             href="#tokens"
-            className="btn-accent inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white transition"
+            className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition"
           >
             Explore Markets
             <ArrowRight className="h-4 w-4" />

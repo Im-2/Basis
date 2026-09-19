@@ -15,7 +15,7 @@ export function TopBar() {
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white/60">
           <HelpCircle className="h-4 w-4" />
         </div>
-        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-pink" />
+        <div className="h-8 w-8 rounded-full border border-white/15 bg-gradient-to-br from-white/40 to-white/10" />
       </div>
     </div>
   );
