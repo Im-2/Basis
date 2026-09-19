@@ -27,3 +27,8 @@ body {
 .btn-primary:hover {
   background-image: linear-gradient(to bottom, color-mix(in srgb, var(--color-accent) 60%, white 40%), var(--color-accent));
 }
+
+.mask-fade-bottom {
+  mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+}

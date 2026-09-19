@@ -8,7 +8,7 @@ import { TopBar } from "./top-bar";
 export function DashboardPreview() {
   return (
     <div className="relative">
-      <div className="relative overflow-hidden rounded-2xl border-x border-t border-white/15 bg-white/[0.06] shadow-2xl shadow-black/70 backdrop-blur-2xl">
+      <div className="mask-fade-bottom overflow-hidden rounded-2xl border border-white/15 bg-white/[0.06] shadow-2xl shadow-black/70 backdrop-blur-2xl">
         <div className="flex">
           <Sidebar />
 
@@ -31,13 +31,6 @@ export function DashboardPreview() {
             </div>
           </div>
         </div>
-
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-64"
-          style={{
-            background: "linear-gradient(to bottom, transparent 0%, var(--color-background) 78%, var(--color-background) 100%)",
-          }}
-        />
       </div>
     </div>
   );
