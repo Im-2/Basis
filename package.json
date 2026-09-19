@@ -1,0 +1,20 @@
+{
+  "name": "basis",
+  "version": "0.1.0",
+  "description": "Backend for Basis - fair-value spread tracker for Tessera T-Tokens (Stocklana hackathon)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "poll": "tsx src/poller.ts",
+    "once": "tsx src/poller.ts --once",
+    "history": "tsx src/history.ts",
+    "diagnose": "tsx src/diagnose.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2"
+  }
+}
