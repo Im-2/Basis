@@ -5,12 +5,14 @@ import { Logo } from "./logo";
 
 const cardTransition = { duration: 0.5, ease: "easeOut" as const };
 const viewport = { once: false, amount: 0.4 };
+const CARD_HEIGHT = "md:min-h-[440px]";
 
 export function ProblemSolution() {
   return (
     <section className="relative overflow-hidden py-24 sm:py-32">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/2 h-[560px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/[0.04] blur-[140px]" />
+        <div className="absolute left-[15%] top-[20%] h-[320px] w-[320px] rounded-full bg-white/10 blur-[90px]" />
+        <div className="absolute bottom-[10%] right-[15%] h-[320px] w-[320px] rounded-full bg-white/10 blur-[90px]" />
       </div>
 
       <div className="relative mx-auto max-w-5xl px-6 lg:px-8">
@@ -20,9 +22,9 @@ export function ProblemSolution() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={viewport}
             transition={cardTransition}
-            className="relative z-10 rounded-2xl border border-white/15 bg-white/[0.06] p-8 shadow-2xl shadow-black/70 backdrop-blur-2xl md:w-[60%]"
+            className={`glass-panel relative z-10 flex ${CARD_HEIGHT} flex-col justify-center rounded-2xl p-8 md:w-[60%]`}
           >
-            <span className="inline-block rounded-full bg-red-800/90 px-4 py-1.5 text-sm font-medium text-white">
+            <span className="inline-block w-fit rounded-full bg-red-800/90 px-4 py-1.5 text-sm font-medium text-white">
               Problem
             </span>
             <p className="mt-6 leading-relaxed text-white/90">
@@ -52,9 +54,9 @@ export function ProblemSolution() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={viewport}
             transition={{ ...cardTransition, delay: 0.12 }}
-            className="relative z-10 mt-8 rounded-2xl border border-white/15 bg-white/[0.06] p-8 shadow-2xl shadow-black/70 backdrop-blur-2xl md:-mt-28 md:ml-auto md:w-[60%]"
+            className={`glass-panel relative z-10 mt-8 flex ${CARD_HEIGHT} flex-col justify-center rounded-2xl p-8 md:-mt-32 md:ml-auto md:w-[60%] md:pt-14`}
           >
-            <span className="inline-block rounded-full bg-emerald-800/90 px-4 py-1.5 text-sm font-medium text-white">
+            <span className="inline-block w-fit rounded-full bg-emerald-800/90 px-4 py-1.5 text-sm font-medium text-white">
               Solution
             </span>
             <p className="mt-6 leading-relaxed text-white/90">
@@ -67,8 +69,8 @@ export function ProblemSolution() {
             </p>
           </motion.div>
 
-          <div className="absolute left-1/2 top-1/2 z-20 hidden h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg shadow-black/50 backdrop-blur-xl md:flex">
-            <Logo className="h-7 w-7" />
+          <div className="glass-panel absolute left-1/2 top-1/2 z-20 hidden h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl md:flex">
+            <Logo className="h-6 w-6" />
           </div>
         </div>
       </div>
