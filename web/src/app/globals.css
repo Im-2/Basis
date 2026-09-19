@@ -4,7 +4,6 @@
   --color-background: #0c0c0c;
   --color-foreground: #ffffff;
   --color-muted: #989898;
-  --color-vignette: #1f1f1f;
   --color-accent: #3b82f6;
 
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
@@ -31,4 +30,11 @@ body {
 .mask-fade-bottom {
   mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+}
+
+.hero-glow {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.06), transparent 40%),
+    var(--color-background);
 }

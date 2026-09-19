@@ -18,8 +18,14 @@ export interface HeroStat {
   value: string;
   trend: "up" | "down";
   trendLabel: string;
-  icon: "spread" | "holders";
+  icon: "openai" | "kalshi" | "spacex" | "holders";
 }
+
+const symbolIcon: Record<string, HeroStat["icon"]> = {
+  "T-OpenAI": "openai",
+  "T-Kalshi": "kalshi",
+  "T-SpaceX": "spacex",
+};
 
 export const heroStats: HeroStat[] = [
   ...spreadStats.map((s) => ({
@@ -28,7 +34,7 @@ export const heroStats: HeroStat[] = [
     value: `${s.spreadPct >= 0 ? "+" : ""}${s.spreadPct.toFixed(1)}%`,
     trend: s.trend,
     trendLabel: "vs mark price",
-    icon: "spread" as const,
+    icon: symbolIcon[s.symbol],
   })),
   {
     key: "holders",

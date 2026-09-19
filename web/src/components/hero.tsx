@@ -3,12 +3,7 @@ import { DashboardPreview } from "./dashboard-preview";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute -left-32 -top-20 h-[440px] w-[440px] rounded-full bg-vignette/40 blur-[130px]" />
-        <div className="absolute -right-24 -top-10 h-[380px] w-[380px] rounded-full bg-vignette/30 blur-[130px]" />
-      </div>
-
+    <section className="hero-glow relative overflow-hidden">
       <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 pb-8 pt-28 text-center sm:pt-32 lg:px-8">
         <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/70 backdrop-blur">
           <span className="h-1.5 w-1.5 rounded-full bg-accent" />

@@ -1,8 +1,12 @@
-import { Percent, TrendingDown, TrendingUp, Users, type LucideIcon } from "lucide-react";
+import { TrendingDown, TrendingUp, Users } from "lucide-react";
+import type { ComponentType } from "react";
 import type { HeroStat } from "@/lib/dashboard-data";
+import { KalshiIcon, OpenAIIcon, SpaceXIcon } from "@/components/token-icons";
 
-const iconMap: Record<HeroStat["icon"], LucideIcon> = {
-  spread: Percent,
+const iconMap: Record<HeroStat["icon"], ComponentType<{ className?: string }>> = {
+  openai: OpenAIIcon,
+  kalshi: KalshiIcon,
+  spacex: SpaceXIcon,
   holders: Users,
 };
 
@@ -12,11 +16,11 @@ export function StatCard({ label, value, trend, trendLabel, icon }: Omit<HeroSta
 
   return (
     <div className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5">
-        <Icon className="h-4 w-4 text-white/70" />
+      <div className="flex items-center gap-2">
+        <Icon className="h-5 w-5 shrink-0 text-white/80" />
+        <p className="text-sm text-muted">{label}</p>
       </div>
-      <p className="mt-3 text-sm text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
       <p className={`mt-1 flex items-center gap-1 text-xs ${trend === "up" ? "text-white/80" : "text-muted"}`}>
         <TrendIcon className="h-3 w-3" />
         {trendLabel}
