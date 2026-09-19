@@ -6,6 +6,7 @@
   --color-accent: #f84203;
   --color-accent-pink: #f86ebc;
   --color-muted: #989898;
+  --color-vignette: #241207;
 
   --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
 }

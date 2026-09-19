@@ -8,8 +8,8 @@ import { TopBar } from "./top-bar";
 export function DashboardPreview() {
   return (
     <div className="relative">
-      <div className="pointer-events-none absolute -inset-x-10 -bottom-16 top-6 -z-10 rounded-[40px] bg-accent/25 blur-[100px]" />
-      <div className="pointer-events-none absolute -inset-x-20 -bottom-24 top-24 -z-10 rounded-[40px] bg-accent-pink/10 blur-[120px]" />
+      <div className="pointer-events-none absolute -inset-x-10 -bottom-16 top-6 -z-10 rounded-[40px] bg-vignette/50 blur-[100px]" />
+      <div className="pointer-events-none absolute inset-x-0 -bottom-6 h-24 -z-10 rounded-full bg-black/60 blur-3xl" />
 
       <div className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.06] shadow-2xl shadow-black/70 backdrop-blur-2xl">
         <div className="flex">
