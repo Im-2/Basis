@@ -25,10 +25,7 @@ export function Navbar() {
           ))}
         </div>
 
-        <a
-          href="#app"
-          className="rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-white transition hover:brightness-110"
-        >
+        <a href="#app" className="btn-accent rounded-full px-5 py-2.5 text-sm font-medium text-white transition">
           Launch App
         </a>
       </nav>
