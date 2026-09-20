@@ -1,4 +1,5 @@
 import { StatCard } from "@/components/dashboard-preview/stat-card";
+import { spreadColorClass } from "@/lib/spread-color";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
 const symbolIcon: Record<string, "openai" | "kalshi" | "spacex"> = {
@@ -6,6 +7,8 @@ const symbolIcon: Record<string, "openai" | "kalshi" | "spacex"> = {
   "T-Kalshi": "kalshi",
   "T-SpaceX": "spacex",
 };
+
+const GLASS_CARD = "glass-panel rounded-xl p-4";
 
 export function StatRow({ spreads }: { spreads: SpreadRecord[] }) {
   const totalHolders = spreads.reduce((sum, s) => sum + s.holders, 0);
@@ -20,6 +23,8 @@ export function StatRow({ spreads }: { spreads: SpreadRecord[] }) {
           trend={s.spreadPct >= 0 ? "up" : "down"}
           trendLabel="vs mark price"
           icon={symbolIcon[s.symbol] ?? "openai"}
+          className={GLASS_CARD}
+          valueClassName={spreadColorClass(s.spreadPct)}
         />
       ))}
       <StatCard
@@ -28,6 +33,7 @@ export function StatRow({ spreads }: { spreads: SpreadRecord[] }) {
         trend="up"
         trendLabel={`across ${spreads.length} token${spreads.length === 1 ? "" : "s"}`}
         icon="holders"
+        className={GLASS_CARD}
       />
     </div>
   );

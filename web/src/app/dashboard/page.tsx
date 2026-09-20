@@ -4,11 +4,8 @@ import { useEffect, useState } from "react";
 import type { DashboardApiResponse } from "@/lib/dashboard-api-types";
 import { LiveAlerts } from "./_components/live-alerts";
 import { MarketActivity } from "./_components/market-activity";
-import { Sidebar } from "./_components/sidebar";
 import { SpreadHistoryPanel } from "./_components/spread-history-panel";
 import { StatRow } from "./_components/stat-row";
-import { TopBar } from "./_components/top-bar";
-import { useWallet } from "./use-wallet";
 
 const REFRESH_MS = 30_000;
 
@@ -22,8 +19,7 @@ function StatSkeleton() {
   );
 }
 
-export default function DashboardPage() {
-  const wallet = useWallet();
+export default function DashboardOverviewPage() {
   const [data, setData] = useState<DashboardApiResponse | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,41 +59,33 @@ export default function DashboardPage() {
   const symbols = spreads.length > 0 ? spreads.map((s) => s.symbol) : ["T-OpenAI", "T-Kalshi", "T-SpaceX"];
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar wallet={wallet} />
+    <>
+      {(fetchError || data?.stale) && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+          {fetchError
+            ? fetchError
+            : `Live data temporarily unavailable${data?.error ? ` (${data.error})` : ""} — showing the last cached snapshot.`}
+        </div>
+      )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar wallet={wallet} />
+      {loading && !data ? (
+        <StatSkeleton />
+      ) : spreads.length > 0 ? (
+        <StatRow spreads={spreads} />
+      ) : (
+        <div className="glass-panel rounded-2xl p-6 text-center text-sm text-muted">
+          No live data available yet. Once Tessera and Jupiter are reachable, spreads will appear here.
+        </div>
+      )}
 
-        <main className="flex-1 space-y-6 p-6">
-          {(fetchError || data?.stale) && (
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
-              {fetchError
-                ? fetchError
-                : `Live data temporarily unavailable${data?.error ? ` (${data.error})` : ""} — showing the last cached snapshot.`}
-            </div>
-          )}
-
-          {loading && !data ? (
-            <StatSkeleton />
-          ) : spreads.length > 0 ? (
-            <StatRow spreads={spreads} />
-          ) : (
-            <div className="glass-panel rounded-2xl p-6 text-center text-sm text-muted">
-              No live data available yet. Once Tessera and Jupiter are reachable, spreads will appear here.
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <div className="xl:col-span-2">
-              <SpreadHistoryPanel symbols={symbols} history={history} now={now} />
-            </div>
-            <LiveAlerts spreads={spreads} history={history} />
-          </div>
-
-          <MarketActivity history={history} now={now} />
-        </main>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <SpreadHistoryPanel symbols={symbols} history={history} now={now} />
+        </div>
+        <LiveAlerts spreads={spreads} history={history} now={now} />
       </div>
-    </div>
+
+      <MarketActivity history={history} now={now} />
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import { spreadColorClass } from "@/lib/spread-color";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
 type Severity = "High" | "Medium" | "Low";
@@ -11,13 +12,15 @@ const severityStyles: Record<Severity, string> = {
 interface Alert {
   id: string;
   severity: Severity;
-  title: string;
+  titlePrefix: string;
+  titlePct: number;
+  titleSuffix: string;
   description: string;
   timestamp: string;
 }
 
-function relativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
+function relativeTime(iso: string, now: number): string {
+  const diffMs = now - new Date(iso).getTime();
   const mins = Math.round(diffMs / 60_000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins} min ago`;
@@ -39,7 +42,9 @@ function buildAlerts(spreads: SpreadRecord[], history: SpreadRecord[]): Alert[] 
       return {
         id: s.symbol,
         severity: "Medium" as const,
-        title: `${s.symbol} spread narrowed to +${s.spreadPct.toFixed(1)}%`,
+        titlePrefix: `${s.symbol} spread narrowed to `,
+        titlePct: s.spreadPct,
+        titleSuffix: "",
         description: `Down from +${earliest.spreadPct.toFixed(1)}% earlier in this session.`,
         timestamp: s.fetchedAt,
       };
@@ -48,7 +53,9 @@ function buildAlerts(spreads: SpreadRecord[], history: SpreadRecord[]): Alert[] 
       return {
         id: s.symbol,
         severity: "High" as const,
-        title: `${s.symbol} crossed +25% premium`,
+        titlePrefix: `${s.symbol} crossed `,
+        titlePct: 25,
+        titleSuffix: " premium",
         description: `Trading ${s.spreadPct.toFixed(1)}% above Tessera's mark price of $${s.markPrice.toFixed(2)}.`,
         timestamp: s.fetchedAt,
       };
@@ -57,7 +64,9 @@ function buildAlerts(spreads: SpreadRecord[], history: SpreadRecord[]): Alert[] 
       return {
         id: s.symbol,
         severity: "Medium" as const,
-        title: `${s.symbol} spread at +${s.spreadPct.toFixed(1)}%`,
+        titlePrefix: `${s.symbol} spread at `,
+        titlePct: s.spreadPct,
+        titleSuffix: "",
         description: "Above the typical range — worth watching.",
         timestamp: s.fetchedAt,
       };
@@ -65,14 +74,24 @@ function buildAlerts(spreads: SpreadRecord[], history: SpreadRecord[]): Alert[] 
     return {
       id: s.symbol,
       severity: "Low" as const,
-      title: `${s.symbol} spread stable at +${s.spreadPct.toFixed(1)}%`,
+      titlePrefix: `${s.symbol} spread stable at `,
+      titlePct: s.spreadPct,
+      titleSuffix: "",
       description: "Trading close to Tessera's mark price.",
       timestamp: s.fetchedAt,
     };
   });
 }
 
-export function LiveAlerts({ spreads, history }: { spreads: SpreadRecord[]; history: SpreadRecord[] }) {
+export function LiveAlerts({
+  spreads,
+  history,
+  now,
+}: {
+  spreads: SpreadRecord[];
+  history: SpreadRecord[];
+  now: number;
+}) {
   const alerts = buildAlerts(spreads, history);
 
   return (
@@ -84,13 +103,22 @@ export function LiveAlerts({ spreads, history }: { spreads: SpreadRecord[]; hist
         {alerts.map((alert) => (
           <div key={alert.id} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
             <div className="flex items-start justify-between gap-3">
-              <p className="text-sm font-semibold text-white">{alert.title}</p>
-              <span className={`flex-shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium ${severityStyles[alert.severity]}`}>
+              <p className="text-sm font-semibold text-white">
+                {alert.titlePrefix}
+                <span className={spreadColorClass(alert.titlePct)}>
+                  {alert.titlePct >= 0 ? "+" : ""}
+                  {alert.titlePct.toFixed(1)}%
+                </span>
+                {alert.titleSuffix}
+              </p>
+              <span
+                className={`flex-shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium ${severityStyles[alert.severity]}`}
+              >
                 {alert.severity}
               </span>
             </div>
             <p className="mt-1.5 text-sm text-muted">{alert.description}</p>
-            <p className="mt-2 text-xs text-white/40">{relativeTime(alert.timestamp)}</p>
+            <p className="mt-2 text-xs text-white/40">{relativeTime(alert.timestamp, now)}</p>
           </div>
         ))}
         {alerts.length === 0 && <p className="text-sm text-muted">No live data yet.</p>}

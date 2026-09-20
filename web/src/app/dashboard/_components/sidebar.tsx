@@ -1,58 +1,66 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowLeftRight, Bell, LayoutGrid, LineChart, Settings, SquareStack, Wallet } from "lucide-react";
 import { Logo } from "@/components/logo";
 import type { WalletState } from "../use-wallet";
 
 const generalNav = [
-  { label: "Overview", icon: LayoutGrid, active: true },
-  { label: "Markets", icon: SquareStack, active: false },
-  { label: "Trade", icon: ArrowLeftRight, active: false },
+  { label: "Overview", href: "/dashboard", icon: LayoutGrid },
+  { label: "Markets", href: "/dashboard/markets", icon: SquareStack },
+  { label: "Trade", href: "/dashboard/trade", icon: ArrowLeftRight },
 ];
 
 const dataNav = [
-  { label: "Spread History", icon: LineChart, active: false },
-  { label: "Alerts", icon: Bell, active: false },
+  { label: "Spread History", href: "/dashboard/spread-history", icon: LineChart },
+  { label: "Alerts", href: "/dashboard/alerts", icon: Bell },
 ];
 
 const accountNav = [
-  { label: "Wallet", icon: Wallet, active: false },
-  { label: "Settings", icon: Settings, active: false },
+  { label: "Wallet", href: "/dashboard/wallet", icon: Wallet },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-function NavGroup({ title, items }: { title: string; items: typeof generalNav }) {
+function NavGroup({ title, items, pathname }: { title: string; items: typeof generalNav; pathname: string }) {
   return (
     <div>
       <p className="px-3 text-[11px] font-medium uppercase tracking-wider text-muted">{title}</p>
       <nav className="mt-2 space-y-1">
-        {items.map(({ label, icon: Icon, active }) => (
-          <div
-            key={label}
-            className={`flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${
-              active ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </div>
-        ))}
+        {items.map(({ label, href, icon: Icon }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={label}
+              href={href}
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${
+                active ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );
 }
 
 export function Sidebar({ wallet }: { wallet: WalletState }) {
+  const pathname = usePathname();
+
   return (
     <aside className="glass-panel hidden w-64 flex-shrink-0 flex-col rounded-none p-4 lg:flex">
-      <div className="flex items-center gap-2 px-2">
+      <Link href="/dashboard" className="flex items-center gap-2 px-2">
         <Logo className="h-7 w-7" />
         <span className="text-lg font-semibold tracking-tight text-white">Basis</span>
-      </div>
+      </Link>
 
       <div className="mt-8 flex flex-col gap-6">
-        <NavGroup title="General" items={generalNav} />
-        <NavGroup title="Data" items={dataNav} />
-        <NavGroup title="Account" items={accountNav} />
+        <NavGroup title="General" items={generalNav} pathname={pathname} />
+        <NavGroup title="Data" items={dataNav} pathname={pathname} />
+        <NavGroup title="Account" items={accountNav} pathname={pathname} />
       </div>
 
       <div className="mt-auto pt-6">

@@ -7,18 +7,25 @@ export function SpreadHistoryChart({
   data,
   symbol,
   heightClass = "h-48",
+  hideHeader = false,
 }: {
   data: SpreadHistoryPoint[];
   symbol: string;
   heightClass?: string;
+  /** Skip the internal "Spread History" title/subtitle -- for callers that already show their own panel header. */
+  hideHeader?: boolean;
 }) {
   return (
     <div className="h-full rounded-xl border border-white/5 bg-white/[0.03] p-5">
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-white">Spread History</p>
-          <p className="text-xs text-muted">{symbol} · last 6 hours</p>
-        </div>
+        {hideHeader ? (
+          <div />
+        ) : (
+          <div>
+            <p className="text-sm font-medium text-white">Spread History</p>
+            <p className="text-xs text-muted">{symbol} · last 6 hours</p>
+          </div>
+        )}
         <div className="flex items-center gap-4 text-xs text-muted">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-white/35" />
