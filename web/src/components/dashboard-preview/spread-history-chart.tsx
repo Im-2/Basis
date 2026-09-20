@@ -3,7 +3,15 @@
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { SpreadHistoryPoint } from "@/lib/types";
 
-export function SpreadHistoryChart({ data, symbol }: { data: SpreadHistoryPoint[]; symbol: string }) {
+export function SpreadHistoryChart({
+  data,
+  symbol,
+  heightClass = "h-48",
+}: {
+  data: SpreadHistoryPoint[];
+  symbol: string;
+  heightClass?: string;
+}) {
   return (
     <div className="h-full rounded-xl border border-white/5 bg-white/[0.03] p-5">
       <div className="flex items-center justify-between">
@@ -23,7 +31,7 @@ export function SpreadHistoryChart({ data, symbol }: { data: SpreadHistoryPoint[
         </div>
       </div>
 
-      <div className="mt-4 h-48">
+      <div className={`mt-4 ${heightClass}`}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <XAxis dataKey="time" hide />

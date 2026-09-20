@@ -9,7 +9,7 @@ const CARD_HEIGHT = "md:min-h-[440px]";
 
 export function ProblemSolution() {
   return (
-    <section className="relative overflow-hidden py-24 sm:py-32">
+    <section className="relative overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[15%] top-[20%] h-[320px] w-[320px] rounded-full bg-white/10 blur-[90px]" />
         <div className="absolute bottom-[10%] right-[15%] h-[320px] w-[320px] rounded-full bg-white/10 blur-[90px]" />
