@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "npm run build --prefix ..",
     "dev": "next dev",
+    "prebuild": "npm run build --prefix ..",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
