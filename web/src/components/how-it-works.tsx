@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { spreadHistory, spreadHistorySymbol, spreadStats } from "@/lib/dashboard-data";
+import { spreadColorClass } from "@/lib/spread-color";
 import { SpreadHistoryChart } from "./dashboard-preview/spread-history-chart";
 
 const viewport = { once: false, amount: 0.3 };
@@ -12,11 +13,7 @@ const tradeRows = spreadStats.map((s) => ({ ...s, action: "Buy" }));
 
 export function HowItWorks() {
   return (
-    <section className="relative overflow-hidden py-24 sm:py-32">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/3 h-[500px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/[0.05] blur-[130px]" />
-      </div>
-
+    <section className="relative overflow-hidden bg-background pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
         <div className="flex flex-col items-center text-center">
           <span className="inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/70 backdrop-blur">
@@ -65,7 +62,8 @@ export function HowItWorks() {
                     <div key={row.symbol} className="flex items-center gap-3">
                       <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-white/60" />
                       <p className="text-sm text-white/90">
-                        {row.symbol} <span className="text-white">+{row.spreadPct}%</span> vs mark
+                        {row.symbol} <span className={spreadColorClass(row.spreadPct)}>+{row.spreadPct}%</span> vs
+                        mark
                       </p>
                     </div>
                   ))}
@@ -97,7 +95,7 @@ export function HowItWorks() {
                   {tradeRows.map((row) => (
                     <div key={row.symbol} className="grid grid-cols-3 gap-2 py-2.5 text-sm">
                       <span className="text-white/90">{row.symbol}</span>
-                      <span className="text-white/90">+{row.spreadPct}%</span>
+                      <span className={spreadColorClass(row.spreadPct)}>+{row.spreadPct}%</span>
                       <span className="text-white/60">{row.action}</span>
                     </div>
                   ))}
