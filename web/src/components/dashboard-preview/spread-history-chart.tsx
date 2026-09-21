@@ -51,8 +51,8 @@ export function SpreadHistoryChart({
                 fontSize: 12,
               }}
               labelStyle={{ color: "#989898" }}
-              formatter={(value: number, name: string) => [
-                `$${value.toFixed(2)}`,
+              formatter={(value, name) => [
+                `$${Number(value).toFixed(2)}`,
                 name === "markPrice" ? "Mark Price" : "DEX Price",
               ]}
             />

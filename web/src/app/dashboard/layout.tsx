@@ -1,11 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { SolanaWalletProvider } from "@/components/solana/wallet-provider";
 import { Sidebar } from "./_components/sidebar";
 import { TopBar } from "./_components/top-bar";
 import { useWallet } from "./use-wallet";
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+function DashboardShell({ children }: { children: ReactNode }) {
   const wallet = useWallet();
 
   return (
@@ -17,5 +18,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <main className="flex-1 space-y-6 p-6">{children}</main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  return (
+    <SolanaWalletProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </SolanaWalletProvider>
   );
 }
