@@ -67,3 +67,13 @@ export function useTheme(): ThemeContextValue {
   }
   return ctx;
 }
+
+/**
+ * The CSS class for the OPPOSITE of the current global theme -- for landing
+ * page "preview" elements that always contrast against the page background
+ * (see the .dark-theme block in globals.css) rather than following it.
+ */
+export function useInvertedThemeClass(): "light-theme" | "dark-theme" {
+  const { theme } = useTheme();
+  return theme === "light" ? "dark-theme" : "light-theme";
+}

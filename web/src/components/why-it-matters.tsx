@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowRightLeft, Radar, Split, type LucideIcon } from "lucide-react";
+import { useInvertedThemeClass } from "@/lib/theme";
 
 const viewport = { once: false, amount: 0.3 };
 const textTransition = (delay: number) => ({ duration: 0.5, ease: "easeOut" as const, delay });
@@ -39,6 +40,8 @@ const steps: Step[] = [
 ];
 
 export function WhyItMatters() {
+  const invertedTheme = useInvertedThemeClass();
+
   return (
     <section className="relative overflow-hidden bg-background pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 px-6 lg:grid-cols-2 lg:px-8">
@@ -94,7 +97,7 @@ export function WhyItMatters() {
                   viewport={viewport}
                   transition={textTransition(i * 0.1)}
                   style={{ zIndex: 10 + i * 10 }}
-                  className={`glass-panel relative w-full rounded-2xl p-6 lg:w-[82%] ${
+                  className={`glass-panel relative w-full rounded-2xl p-6 lg:w-[82%] ${invertedTheme} ${
                     i > 0 ? "mt-4 lg:-mt-10" : ""
                   } ${step.align === "right" ? "lg:ml-auto" : "lg:mr-auto"}`}
                 >

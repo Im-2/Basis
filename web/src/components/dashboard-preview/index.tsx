@@ -1,4 +1,7 @@
+"use client";
+
 import { heroStats, priceAlerts, spreadHistory, spreadHistorySymbol } from "@/lib/dashboard-data";
+import { useInvertedThemeClass } from "@/lib/theme";
 import { PriceAlerts } from "./price-alerts";
 import { Sidebar } from "./sidebar";
 import { SpreadHistoryChart } from "./spread-history-chart";
@@ -6,9 +9,13 @@ import { StatCard } from "./stat-card";
 import { TopBar } from "./top-bar";
 
 export function DashboardPreview() {
+  const invertedTheme = useInvertedThemeClass();
+
   return (
     <div className="relative">
-      <div className="glass-panel mask-fade-bottom max-h-[420px] overflow-hidden rounded-2xl sm:max-h-none">
+      <div
+        className={`glass-panel mask-fade-bottom max-h-[420px] overflow-hidden rounded-2xl sm:max-h-none ${invertedTheme}`}
+      >
         <div className="flex">
           <Sidebar />
 

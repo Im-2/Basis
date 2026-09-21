@@ -127,3 +127,57 @@ body {
 .glass-panel.modal-panel {
   background: color-mix(in srgb, var(--color-background) 92%, transparent);
 }
+
+/*
+ * Inverted-theme scope for landing-page "preview" elements (the hero's
+ * dashboard mockup, embedded chart/list/table panels, the spread chart
+ * card, the Detect/Surface/Route cards) -- these deliberately render the
+ * OPPOSITE of the page's current theme so they read as a floating,
+ * contrasting "framed screenshot" rather than blending into the page.
+ * Applied via useInvertedThemeClass() (lib/theme.tsx), merged onto the same
+ * element as .glass-panel/.preview-invert-surface (not as an ancestor).
+ *
+ * This mirrors the original dark @theme defaults above so it can force
+ * dark back on even when nested inside a .light-theme ancestor (the whole
+ * page is in light mode).
+ */
+.dark-theme {
+  --color-background: #0c0c0c;
+  --color-foreground: #ffffff;
+  --color-muted: #989898;
+  --color-white: #ffffff;
+
+  --color-chart-mark: rgba(255, 255, 255, 0.35);
+  --color-chart-tooltip-bg: #151516;
+  --color-chart-tooltip-border: rgba(255, 255, 255, 0.1);
+  --color-chart-label: #989898;
+  --color-chart-grid: rgba(255, 255, 255, 0.06);
+  --color-premium: #3b82f6;
+  --color-panel-sunken: #0a0a0b;
+}
+
+/*
+ * Same reasoning as .modal-panel above: a plain few-percent tint assumes
+ * it's sitting on a page whose background already matches its own theme.
+ * These inverted panels deliberately sit on the OPPOSITE page, so that
+ * assumption breaks -- a 6% white tint over a light global page (or a 3%
+ * black tint over a dark one) reads as washed-out/invisible instead of a
+ * floating, contrasting panel. Compound selectors (not descendant) because
+ * the theme class is merged directly onto the same element as
+ * .glass-panel/.preview-invert-surface, never applied as their ancestor;
+ * this also means these rules can never accidentally match the app-wide
+ * .light-theme scope (that class lives on a plain wrapper div, not one
+ * that also carries .glass-panel).
+ */
+.dark-theme.glass-panel,
+.light-theme.glass-panel,
+.dark-theme.preview-invert-surface,
+.light-theme.preview-invert-surface {
+  background: color-mix(in srgb, var(--color-background) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-white) 10%, transparent);
+}
+
+.preview-invert-surface {
+  @apply backdrop-blur-lg;
+  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.35);
+}

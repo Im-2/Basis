@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { spreadStats, tokenSpreadHistories } from "@/lib/dashboard-data";
 import { spreadColorClass } from "@/lib/spread-color";
+import { useInvertedThemeClass } from "@/lib/theme";
 import { SpreadHistoryChart } from "./dashboard-preview/spread-history-chart";
 
 const viewport = { once: false, amount: 0.3 };
@@ -12,6 +13,7 @@ const timeframes = ["6H", "24H", "7D"] as const;
 export function SpreadChartPreview() {
   const [selected, setSelected] = useState(spreadStats[0].symbol);
   const [timeframe, setTimeframe] = useState<(typeof timeframes)[number]>("6H");
+  const invertedTheme = useInvertedThemeClass();
 
   const activeStat = spreadStats.find((s) => s.symbol === selected) ?? spreadStats[0];
   const history = tokenSpreadHistories[selected];
@@ -37,7 +39,7 @@ export function SpreadChartPreview() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="glass-panel mt-12 rounded-2xl p-6 sm:p-8"
+          className={`glass-panel mt-12 rounded-2xl p-6 sm:p-8 ${invertedTheme}`}
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap gap-2">
