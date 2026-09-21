@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { Area, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { SpreadHistoryPoint } from "@/lib/types";
 
 // Padding proportional to price level (not a flat dollar amount) -- a flat
@@ -44,7 +44,7 @@ export function SpreadHistoryChart({
             Mark Price
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full" style={{ background: "var(--color-chart-dex-line)" }} />
+            <span className="h-2 w-2 rounded-full" style={{ background: "var(--color-premium)" }} />
             DEX Price
           </span>
         </div>
@@ -55,10 +55,11 @@ export function SpreadHistoryChart({
           <ComposedChart data={data}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-chart-dex-line)" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="var(--color-chart-dex-line)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--color-premium)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--color-premium)" stopOpacity={0} />
               </linearGradient>
             </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-chart-grid)" vertical={false} />
             <XAxis dataKey="time" hide />
             <YAxis
               hide
@@ -88,7 +89,7 @@ export function SpreadHistoryChart({
             <Area
               type="monotone"
               dataKey="dexPrice"
-              stroke="var(--color-chart-dex-line)"
+              stroke="var(--color-premium)"
               strokeWidth={2}
               fill={`url(#${gradientId})`}
               dot={false}

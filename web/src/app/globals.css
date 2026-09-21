@@ -13,9 +13,13 @@
   --color-chart-tooltip-bg: #151516;
   --color-chart-tooltip-border: rgba(255, 255, 255, 0.1);
   --color-chart-label: #989898;
+  --color-chart-grid: rgba(255, 255, 255, 0.06);
   /* Same as --color-accent in dark mode; overridden to a deeper, more
-     saturated blue in light mode where #3B82F6 on white reads washed out. */
-  --color-chart-dex-line: #3b82f6;
+     saturated blue in light mode where #3B82F6 on white reads washed out.
+     Shared by the DEX price chart line/fill AND dashboardSpreadColorClass's
+     "premium" case (spread-color.ts) -- same blue, same meaning: "trading
+     above mark price", wherever it shows up. */
+  --color-premium: #3b82f6;
 }
 
 body {
@@ -83,8 +87,11 @@ body {
   --color-chart-tooltip-bg: #ffffff;
   --color-chart-tooltip-border: rgba(17, 17, 17, 0.1);
   --color-chart-label: #4b5563;
-  /* blue-700 -- #3B82F6 (blue-500) only hits ~3.7:1 on white, borderline for a line meant to read as primary content. */
-  --color-chart-dex-line: #1d4ed8;
+  --color-chart-grid: rgba(17, 17, 17, 0.08);
+  /* blue-700 -- #3B82F6 (blue-500) only hits ~3.7:1 on white, borderline for
+     something meant to read as primary content (a chart line, a headline
+     spread %). */
+  --color-premium: #1d4ed8;
 }
 
 .dashboard-theme .glass-panel {

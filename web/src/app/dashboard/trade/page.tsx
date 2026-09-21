@@ -134,8 +134,9 @@ function TradePageInner() {
  * The Basis analysis: what the spread is doing right now, in large type,
  * above the chart/panel. A discount (negative spread) is the real buy
  * signal -- green, "good entry point". A premium (positive spread) just
- * means it's trading above fair value right now -- amber, informational,
- * no "opportunity" language.
+ * means it's trading above fair value right now -- our accent blue,
+ * informational, no "opportunity" language (and deliberately not amber,
+ * which reads as a warning we don't intend).
  */
 function SpreadInsight({ token }: { token: SpreadRecord }) {
   const discount = token.spreadPct < 0;
@@ -145,7 +146,7 @@ function SpreadInsight({ token }: { token: SpreadRecord }) {
     <div className="glass-panel rounded-2xl p-6">
       <div
         className={`rounded-xl border px-4 py-3 text-sm font-medium ${
-          discount ? "border-green-500/20 bg-green-500/10 text-green-300" : "border-amber-500/20 bg-amber-500/10 text-amber-300"
+          discount ? "border-green-500/20 bg-green-500/10 text-green-300" : "border-premium/20 bg-premium/10 text-premium"
         }`}
       >
         {discount
