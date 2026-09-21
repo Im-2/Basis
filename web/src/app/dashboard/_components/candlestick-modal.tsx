@@ -34,14 +34,37 @@ interface Candle {
   close: number;
 }
 
+// Finest bucket worth showing -- matches our ~30s poll interval, so a
+// smaller bucket wouldn't add real resolution, just empty gaps.
+const MIN_BUCKET_MS = 30 * 1000;
+// Aim for roughly this many candles when data allows it.
+const TARGET_CANDLE_COUNT = 24;
+
 /** Derives OHLC candles from real point-in-time DEX price snapshots -- no fabricated data, just bucketed real readings. */
-function buildCandles(history: SpreadRecord[], symbol: string, rangeMs: number, bucketMs: number, now: number): Candle[] {
+function buildCandles(
+  history: SpreadRecord[],
+  symbol: string,
+  rangeMs: number,
+  nominalBucketMs: number,
+  now: number,
+): Candle[] {
   const cutoff = Number.isFinite(rangeMs) ? now - rangeMs : -Infinity;
   const points = history
     .filter((r) => r.symbol === symbol)
     .filter((r) => new Date(r.fetchedAt).getTime() >= cutoff)
     .map((r) => ({ t: new Date(r.fetchedAt).getTime(), price: r.dexPrice }))
     .sort((a, b) => a.t - b.t);
+
+  if (points.length === 0) return [];
+
+  // Shrink the bucket size to match how much real time our data actually
+  // spans, capped at the timeframe's nominal size -- otherwise sparse
+  // recent data (e.g. right after a serverless cold start, with only a
+  // couple of minutes of real snapshots) collapses into a single bucket
+  // and renders as one giant candle stretched across the whole chart,
+  // regardless of which timeframe is selected.
+  const actualSpanMs = points[points.length - 1].t - points[0].t;
+  const bucketMs = Math.min(nominalBucketMs, Math.max(MIN_BUCKET_MS, actualSpanMs / TARGET_CANDLE_COUNT));
 
   const buckets = new Map<number, number[]>();
   for (const p of points) {
