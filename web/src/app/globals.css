@@ -99,3 +99,16 @@ body {
   border: 1px solid rgba(17, 17, 17, 0.06);
   box-shadow: 0 20px 40px -20px rgba(17, 17, 17, 0.12);
 }
+
+/*
+ * Modals sit on their own dark scrim, not the page background -- .glass-panel's
+ * usual ~3-6% tint is meant to blend with the page behind it, so over a
+ * black/60 backdrop it just reads as dark text on a dark smear regardless of
+ * theme (the text color itself is correctly theme-flipped; the panel was
+ * effectively see-through to the wrong thing). This gives it a mostly-opaque,
+ * theme-correct backing instead, keeping a thin translucent edge so
+ * backdrop-blur still has a visible effect.
+ */
+.glass-panel.modal-panel {
+  background: color-mix(in srgb, var(--color-background) 92%, transparent);
+}
