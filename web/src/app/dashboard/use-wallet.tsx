@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { useConnection, useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
@@ -24,13 +25,18 @@ export interface WalletState {
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 const BALANCE_REFRESH_MS = 30_000;
 
+const WalletBalanceContext = createContext<WalletState | null>(null);
+
 /**
  * Wraps @solana/wallet-adapter-react's useWallet() + useConnection() with the
- * real SOL/USDC balances for the connected account, and exposes the same
- * WalletState shape the sidebar/top bar already render -- connect() opens the
- * real wallet-selection modal instead of a mock toggle.
+ * real SOL/USDC balances for the connected account, polled on a single
+ * shared interval regardless of how many components call useWallet() --
+ * without this, the sidebar/top bar and the Trade page (which each call
+ * useWallet() independently) would each run their own 30s polling loop,
+ * doubling RPC traffic (and doubling any RPC error) whenever both are
+ * mounted at once.
  */
-export function useWallet(): WalletState {
+export function WalletBalanceProvider({ children }: { children: ReactNode }) {
   const { connection } = useConnection();
   const { publicKey, connected, disconnect: adapterDisconnect, signTransaction } = useSolanaWallet();
   const { setVisible } = useWalletModal();
@@ -80,7 +86,7 @@ export function useWallet(): WalletState {
 
   const address = publicKey?.toBase58() ?? null;
 
-  return useMemo(
+  const value = useMemo<WalletState>(
     () => ({
       connected,
       address,
@@ -94,4 +100,14 @@ export function useWallet(): WalletState {
     }),
     [connected, address, solBalance, usdcBalance, connect, disconnect, signTransaction, refreshBalances],
   );
+
+  return <WalletBalanceContext.Provider value={value}>{children}</WalletBalanceContext.Provider>;
+}
+
+export function useWallet(): WalletState {
+  const ctx = useContext(WalletBalanceContext);
+  if (!ctx) {
+    throw new Error("useWallet() must be called within a WalletBalanceProvider");
+  }
+  return ctx;
 }

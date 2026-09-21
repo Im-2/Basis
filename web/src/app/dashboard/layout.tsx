@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { SolanaWalletProvider } from "@/components/solana/wallet-provider";
 import { Sidebar } from "./_components/sidebar";
 import { TopBar } from "./_components/top-bar";
-import { useWallet } from "./use-wallet";
+import { useWallet, WalletBalanceProvider } from "./use-wallet";
 
 function DashboardShell({ children }: { children: ReactNode }) {
   const wallet = useWallet();
@@ -24,7 +24,9 @@ function DashboardShell({ children }: { children: ReactNode }) {
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <SolanaWalletProvider>
-      <DashboardShell>{children}</DashboardShell>
+      <WalletBalanceProvider>
+        <DashboardShell>{children}</DashboardShell>
+      </WalletBalanceProvider>
     </SolanaWalletProvider>
   );
 }
