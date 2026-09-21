@@ -1,10 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import type { ComponentType } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ChevronDown } from "lucide-react";
 import { VersionedTransaction } from "@solana/web3.js";
 import { spreadColorClass } from "@/lib/spread-color";
+import { OpenAIIcon, KalshiIcon, SpaceXIcon, SolIcon, UsdcIcon, UsdtIcon } from "@/components/token-icons";
+import { SpreadHistoryChart } from "@/components/dashboard-preview/spread-history-chart";
 import {
   INPUT_TOKENS,
   decodeBase64,
@@ -23,16 +26,33 @@ const QUOTE_DEBOUNCE_MS = 500;
 
 type TxState = "idle" | "awaiting-signature" | "submitting" | "confirmed" | "failed";
 
+const tokenIcon: Record<string, ComponentType<{ className?: string }>> = {
+  "T-OpenAI": OpenAIIcon,
+  "T-Kalshi": KalshiIcon,
+  "T-SpaceX": SpaceXIcon,
+};
+
+const inputTokenIcon: Record<InputToken["symbol"], ComponentType<{ className?: string }>> = {
+  SOL: SolIcon,
+  USDC: UsdcIcon,
+  USDT: UsdtIcon,
+};
+
 function inputBalanceFor(wallet: WalletState, symbol: InputToken["symbol"]): number {
   if (symbol === "SOL") return wallet.solBalance;
   if (symbol === "USDC") return wallet.usdcBalance;
   return wallet.usdtBalance;
 }
 
+function formatAmountInput(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  return parseFloat(value.toFixed(6)).toString();
+}
+
 function TradePageInner() {
   const searchParams = useSearchParams();
   const wallet = useWallet();
-  const { spreads, loading } = useDashboardData();
+  const { spreads, history, now, loading } = useDashboardData();
 
   const [selectedSymbolOverride, setSelectedSymbolOverride] = useState<string | null>(null);
   const requestedToken = searchParams.get("token");
@@ -75,21 +95,29 @@ function TradePageInner() {
       ) : (
         <>
           <SpreadInsight token={selectedToken} />
-          {/* Keyed by output token + input token so switching either remounts the panel with fresh state, instead of an effect resetting it. */}
-          <SwapPanel
-            key={`${selectedToken.symbol}:${inputSymbol}`}
-            token={selectedToken}
-            wallet={wallet}
-            inputSymbol={inputSymbol}
-            onInputSymbolChange={setInputSymbol}
-          />
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <div className="lg:col-span-3">
+              <TokenPriceChart token={selectedToken} history={history} now={now} />
+            </div>
+            <div className="lg:col-span-2">
+              {/* Keyed by output token + input token so switching either remounts the panel with fresh state, instead of an effect resetting it. */}
+              <SwapPanel
+                key={`${selectedToken.symbol}:${inputSymbol}`}
+                token={selectedToken}
+                wallet={wallet}
+                inputSymbol={inputSymbol}
+                onInputSymbolChange={setInputSymbol}
+              />
+            </div>
+          </div>
         </>
       )}
     </div>
   );
 }
 
-/** The Basis analysis: what the spread is doing right now, in large type, above the swap inputs. */
+/** The Basis analysis: what the spread is doing right now, in large type, above the chart/panel. */
 function SpreadInsight({ token }: { token: SpreadRecord }) {
   const positive = token.spreadPct >= 0;
   const pct = Math.abs(token.spreadPct).toFixed(1);
@@ -122,6 +150,133 @@ function SpreadInsight({ token }: { token: SpreadRecord }) {
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+const chartTimeframes = [
+  { label: "1H", ms: 60 * 60 * 1000 },
+  { label: "4H", ms: 4 * 60 * 60 * 1000 },
+  { label: "24H", ms: 24 * 60 * 60 * 1000 },
+] as const;
+
+/** Standalone live price chart for the selected token -- left column of the trade layout. */
+function TokenPriceChart({ token, history, now }: { token: SpreadRecord; history: SpreadRecord[]; now: number }) {
+  const [timeframe, setTimeframe] = useState<(typeof chartTimeframes)[number]["label"]>("1H");
+  const Icon = tokenIcon[token.symbol] ?? OpenAIIcon;
+
+  const points = useMemo(() => {
+    const rangeMs = chartTimeframes.find((t) => t.label === timeframe)?.ms ?? chartTimeframes[0].ms;
+    const cutoff = now - rangeMs;
+
+    return history
+      .filter((r) => r.symbol === token.symbol)
+      .filter((r) => new Date(r.fetchedAt).getTime() >= cutoff)
+      .sort((a, b) => new Date(a.fetchedAt).getTime() - new Date(b.fetchedAt).getTime())
+      .map((r) => ({
+        time: new Date(r.fetchedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+        markPrice: r.markPrice,
+        dexPrice: r.dexPrice,
+      }));
+  }, [history, token.symbol, timeframe, now]);
+
+  return (
+    <div className="glass-panel rounded-2xl p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Icon className="h-7 w-7 flex-shrink-0 rounded-full" />
+          <p className="text-base font-semibold text-white">{token.symbol}</p>
+        </div>
+        <div className="flex gap-1 rounded-full border border-white/10 p-1">
+          {chartTimeframes.map((tf) => (
+            <button
+              key={tf.label}
+              type="button"
+              onClick={() => setTimeframe(tf.label)}
+              className={`rounded-full px-3 py-1 text-xs transition ${
+                timeframe === tf.label ? "bg-white/10 text-white" : "text-white/50 hover:text-white"
+              }`}
+            >
+              {tf.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6">
+        {points.length >= 2 ? (
+          <SpreadHistoryChart data={points} symbol={token.symbol} heightClass="h-72" hideHeader />
+        ) : (
+          <div className="flex h-72 flex-col items-center justify-center rounded-xl border border-white/5 bg-white/[0.03] text-center">
+            <p className="text-sm text-white/70">Building history — check back soon.</p>
+            <p className="mt-1 text-xs text-muted">
+              {points.length === 1 ? "Only one snapshot recorded so far for this window." : "No snapshots recorded yet for this window."}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Custom-styled input-token pill + popover, replacing the native <select>. */
+function InputTokenSelector({
+  value,
+  onChange,
+}: {
+  value: InputToken["symbol"];
+  onChange: (symbol: InputToken["symbol"]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handlePointerDown(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, []);
+
+  const CurrentIcon = inputTokenIcon[value];
+
+  return (
+    <div ref={containerRef} className="relative flex-shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-1.5 pl-1.5 pr-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+      >
+        <CurrentIcon className="h-5 w-5 flex-shrink-0 rounded-full" />
+        {value}
+        <ChevronDown className={`h-3.5 w-3.5 text-white/40 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="glass-panel absolute right-0 top-full z-20 mt-2 w-36 overflow-hidden rounded-xl border border-white/10 p-1">
+          {INPUT_TOKENS.map((t) => {
+            const OptionIcon = inputTokenIcon[t.symbol];
+            return (
+              <button
+                key={t.symbol}
+                type="button"
+                onClick={() => {
+                  onChange(t.symbol);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition ${
+                  t.symbol === value ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                <OptionIcon className="h-5 w-5 flex-shrink-0 rounded-full" />
+                {t.symbol}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -271,23 +426,31 @@ function SwapPanel({
               placeholder="0.00"
               className="w-full bg-transparent text-lg text-white placeholder:text-white/30 focus:outline-none"
             />
-            <select
-              value={inputSymbol}
-              onChange={(e) => onInputSymbolChange(e.target.value as InputToken["symbol"])}
-              className="flex-shrink-0 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm text-white focus:outline-none"
-            >
-              {INPUT_TOKENS.map((t) => (
-                <option key={t.symbol} value={t.symbol} className="bg-[#151516] text-white">
-                  {t.symbol}
-                </option>
-              ))}
-            </select>
+            <InputTokenSelector value={inputSymbol} onChange={onInputSymbolChange} />
           </div>
-          {wallet.connected && (
-            <p className="mt-1.5 text-xs text-muted">
-              Balance: {inputBalance.toFixed(inputSymbol === "SOL" ? 4 : 2)} {inputSymbol}
-            </p>
-          )}
+
+          <div className="mt-2 flex items-center justify-between gap-3">
+            {wallet.connected ? (
+              <p className="text-xs text-muted">
+                Balance: {inputBalance.toFixed(inputSymbol === "SOL" ? 4 : 2)} {inputSymbol}
+              </p>
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-1.5">
+              {[0.25, 0.5, 1].map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  disabled={!wallet.connected || inputBalance <= 0}
+                  onClick={() => setAmountIn(formatAmountInput(inputBalance * pct))}
+                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  {pct === 1 ? "100%" : `${pct * 100}%`}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-center text-white/30">
