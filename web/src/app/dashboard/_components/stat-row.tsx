@@ -25,6 +25,18 @@ export function StatRow({ spreads }: { spreads: SpreadRecord[] }) {
           icon={symbolIcon[s.symbol] ?? "openai"}
           className={GLASS_CARD}
           valueClassName={spreadColorClass(s.spreadPct)}
+          extra={
+            <div className="mt-3 space-y-1 border-t border-white/5 pt-3 text-xs">
+              <p>
+                <span className="text-muted">Mark: </span>
+                <span className="text-white">${s.markPrice.toFixed(2)}</span>
+              </p>
+              <p>
+                <span className="text-muted">DEX: </span>
+                <span className="text-white">${s.dexPrice.toFixed(2)}</span>
+              </p>
+            </div>
+          }
         />
       ))}
       <StatCard

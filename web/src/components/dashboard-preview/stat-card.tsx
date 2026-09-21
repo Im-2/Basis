@@ -1,5 +1,5 @@
 import { TrendingDown, TrendingUp, Users } from "lucide-react";
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 import type { HeroStat } from "@/lib/dashboard-data";
 import { KalshiIcon, OpenAIIcon, SpaceXIcon } from "@/components/token-icons";
 
@@ -15,6 +15,8 @@ interface StatCardProps extends Omit<HeroStat, "key"> {
   className?: string;
   /** Color class for the big value text -- e.g. spreadColorClass(pct) for signed spreads. */
   valueClassName?: string;
+  /** Optional content rendered below the trend label -- e.g. mark/DEX price rows. */
+  extra?: ReactNode;
 }
 
 export function StatCard({
@@ -25,6 +27,7 @@ export function StatCard({
   icon,
   className = "rounded-xl border border-white/5 bg-white/[0.03] p-4",
   valueClassName = "text-white",
+  extra,
 }: StatCardProps) {
   const Icon = iconMap[icon];
   const TrendIcon = trend === "up" ? TrendingUp : TrendingDown;
@@ -40,6 +43,7 @@ export function StatCard({
         <TrendIcon className="h-3 w-3" />
         {trendLabel}
       </p>
+      {extra}
     </div>
   );
 }

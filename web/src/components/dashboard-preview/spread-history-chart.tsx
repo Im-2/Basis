@@ -51,6 +51,10 @@ export function SpreadHistoryChart({
                 fontSize: 12,
               }}
               labelStyle={{ color: "#989898" }}
+              formatter={(value: number, name: string) => [
+                `$${value.toFixed(2)}`,
+                name === "markPrice" ? "Mark Price" : "DEX Price",
+              ]}
             />
             <Line type="monotone" dataKey="markPrice" stroke="rgba(255,255,255,0.35)" strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="dexPrice" stroke="#3B82F6" strokeWidth={2} dot={false} />
