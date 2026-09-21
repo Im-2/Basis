@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { spreadColorClass } from "@/lib/spread-color";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
@@ -63,6 +65,7 @@ export function MarketActivity({ history, now }: { history: SpreadRecord[]; now:
               <th className="pb-3 font-medium">Token</th>
               <th className="pb-3 font-medium">Event</th>
               <th className="pb-3 font-medium">Spread</th>
+              <th className="pb-3 font-medium" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -74,6 +77,14 @@ export function MarketActivity({ history, now }: { history: SpreadRecord[]; now:
                 <td className={`py-2.5 font-medium ${spreadColorClass(r.spreadPct)}`}>
                   {r.spreadPct >= 0 ? "+" : ""}
                   {r.spreadPct.toFixed(1)}%
+                </td>
+                <td className="py-2.5 text-right">
+                  <Link
+                    href={`/dashboard/trade?token=${encodeURIComponent(r.symbol)}`}
+                    className="inline-flex items-center gap-1 text-xs text-white/50 transition hover:text-white"
+                  >
+                    Trade <ArrowRight className="h-3 w-3" />
+                  </Link>
                 </td>
               </tr>
             ))}

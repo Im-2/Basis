@@ -1,13 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { DashboardApiResponse } from "@/lib/dashboard-api-types";
 import { LiveAlerts } from "./_components/live-alerts";
 import { MarketActivity } from "./_components/market-activity";
 import { SpreadHistoryPanel } from "./_components/spread-history-panel";
 import { StatRow } from "./_components/stat-row";
-
-const REFRESH_MS = 30_000;
+import { useDashboardData } from "./use-dashboard-data";
 
 function StatSkeleton() {
   return (
@@ -20,42 +17,7 @@ function StatSkeleton() {
 }
 
 export default function DashboardOverviewPage() {
-  const [data, setData] = useState<DashboardApiResponse | null>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const res = await fetch("/api/dashboard", { cache: "no-store" });
-        const json = (await res.json()) as DashboardApiResponse;
-        if (cancelled) return;
-        setData(json);
-        setFetchError(null);
-        setNow(Date.now());
-      } catch {
-        if (cancelled) return;
-        setFetchError("Could not reach the dashboard API.");
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-    const interval = setInterval(load, REFRESH_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
-
-  const spreads = data?.spreads ?? [];
-  const history = data?.history ?? [];
+  const { data, spreads, history, fetchError, loading, now } = useDashboardData();
   const symbols = spreads.length > 0 ? spreads.map((s) => s.symbol) : ["T-OpenAI", "T-Kalshi", "T-SpaceX"];
 
   return (

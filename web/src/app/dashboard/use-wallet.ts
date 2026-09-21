@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useConnection, useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import type { WalletContextState } from "@solana/wallet-adapter-react";
 
 export interface WalletState {
   connected: boolean;
@@ -13,6 +14,10 @@ export interface WalletState {
   usdcBalance: number;
   connect: () => void;
   disconnect: () => void;
+  /** Signs (does not send) a transaction with the connected wallet. Undefined if the wallet doesn't support it. */
+  signTransaction: WalletContextState["signTransaction"];
+  /** Re-fetches SOL/USDC balances immediately, e.g. right after a swap. */
+  refreshBalances: () => void;
 }
 
 // Circle's official mainnet USDC mint.
@@ -27,11 +32,12 @@ const BALANCE_REFRESH_MS = 30_000;
  */
 export function useWallet(): WalletState {
   const { connection } = useConnection();
-  const { publicKey, connected, disconnect: adapterDisconnect } = useSolanaWallet();
+  const { publicKey, connected, disconnect: adapterDisconnect, signTransaction } = useSolanaWallet();
   const { setVisible } = useWalletModal();
 
   const [solBalance, setSolBalance] = useState(0);
   const [usdcBalance, setUsdcBalance] = useState(0);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
     if (!connected || !publicKey) return;
@@ -66,10 +72,11 @@ export function useWallet(): WalletState {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [connected, publicKey, connection]);
+  }, [connected, publicKey, connection, refreshNonce]);
 
   const connect = useCallback(() => setVisible(true), [setVisible]);
   const disconnect = useCallback(() => void adapterDisconnect(), [adapterDisconnect]);
+  const refreshBalances = useCallback(() => setRefreshNonce((n) => n + 1), []);
 
   const address = publicKey?.toBase58() ?? null;
 
@@ -82,7 +89,9 @@ export function useWallet(): WalletState {
       usdcBalance: connected ? usdcBalance : 0,
       connect,
       disconnect,
+      signTransaction,
+      refreshBalances,
     }),
-    [connected, address, solBalance, usdcBalance, connect, disconnect],
+    [connected, address, solBalance, usdcBalance, connect, disconnect, signTransaction, refreshBalances],
   );
 }

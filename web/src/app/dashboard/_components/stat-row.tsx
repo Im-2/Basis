@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { StatCard } from "@/components/dashboard-preview/stat-card";
 import { spreadColorClass } from "@/lib/spread-color";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
@@ -35,6 +37,12 @@ export function StatRow({ spreads }: { spreads: SpreadRecord[] }) {
                 <span className="text-muted">DEX: </span>
                 <span className="text-white">${s.dexPrice.toFixed(2)}</span>
               </p>
+              <Link
+                href={`/dashboard/trade?token=${encodeURIComponent(s.symbol)}`}
+                className="inline-flex items-center gap-1 pt-1 text-white/50 transition hover:text-white"
+              >
+                Trade <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
           }
         />

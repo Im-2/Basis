@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { spreadColorClass } from "@/lib/spread-color";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
@@ -118,7 +120,15 @@ export function LiveAlerts({
               </span>
             </div>
             <p className="mt-1.5 text-sm text-muted">{alert.description}</p>
-            <p className="mt-2 text-xs text-white/40">{relativeTime(alert.timestamp, now)}</p>
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-xs text-white/40">{relativeTime(alert.timestamp, now)}</p>
+              <Link
+                href={`/dashboard/trade?token=${encodeURIComponent(alert.id)}`}
+                className="inline-flex items-center gap-1 text-xs text-white/50 transition hover:text-white"
+              >
+                Trade <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
           </div>
         ))}
         {alerts.length === 0 && <p className="text-sm text-muted">No live data yet.</p>}
