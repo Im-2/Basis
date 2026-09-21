@@ -73,7 +73,39 @@ export default function MarketsPage() {
           </div>
 
           <div className="glass-panel overflow-hidden rounded-2xl">
-            <table className="w-full text-left text-sm">
+            {/* Below sm, a table forces horizontal scroll or clips columns -- a stacked row reads better on a narrow screen. */}
+            <div className="divide-y divide-white/5 sm:hidden">
+              {spreads.map((s) => {
+                const Icon = tokenIcon[s.symbol] ?? OpenAIIcon;
+                return (
+                  <button
+                    key={s.symbol}
+                    type="button"
+                    onClick={() => setSelectedSymbol(s.symbol)}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition hover:bg-white/5"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Icon className="h-8 w-8 flex-shrink-0 rounded-full text-white" />
+                      <div className="min-w-0">
+                        <p className="font-medium text-white">{s.symbol}</p>
+                        <p className="truncate text-xs text-muted">
+                          ${s.dexPrice.toFixed(2)} · {s.holders.toLocaleString("en-US")} holders
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-shrink-0 items-center gap-2">
+                      <p className={`font-medium ${dashboardSpreadColorClass(s.spreadPct)}`}>
+                        {s.spreadPct >= 0 ? "+" : ""}
+                        {s.spreadPct.toFixed(1)}%
+                      </p>
+                      <ChevronRight className="h-4 w-4 flex-shrink-0 text-white/40" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <table className="hidden w-full text-left text-sm sm:table">
               <thead>
                 <tr className="border-b border-white/5 text-xs uppercase tracking-wide text-muted">
                   <th className="px-6 py-4 font-medium">Token</th>

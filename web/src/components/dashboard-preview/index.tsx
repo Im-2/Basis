@@ -8,7 +8,7 @@ import { TopBar } from "./top-bar";
 export function DashboardPreview() {
   return (
     <div className="relative">
-      <div className="glass-panel mask-fade-bottom overflow-hidden rounded-2xl">
+      <div className="glass-panel mask-fade-bottom max-h-[420px] overflow-hidden rounded-2xl sm:max-h-none">
         <div className="flex">
           <Sidebar />
 
