@@ -74,16 +74,34 @@ export function CandlestickModal({
   onClose: () => void;
 }) {
   const { theme } = useTheme();
-  const [timeframe, setTimeframe] = useState<(typeof candleTimeframes)[number]["label"]>("24H");
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 
+  // Candle count per timeframe, so the initial pick and the empty state can
+  // both reason about which windows actually have data -- data density
+  // varies a lot right after a deploy (a fresh serverless instance's
+  // snapshot store starts near-empty and only fills back up from traffic).
+  const candlesByTimeframe = useMemo(() => {
+    const map = new Map<(typeof candleTimeframes)[number]["label"], Candle[]>();
+    for (const t of candleTimeframes) {
+      map.set(t.label, buildCandles(history, token.symbol, t.rangeMs, t.bucketMs, now));
+    }
+    return map;
+  }, [history, token.symbol, now]);
+
+  // Default to the shortest timeframe that actually has a candle, rather
+  // than always landing on 24H -- with a sparse store (e.g. right after a
+  // cold start), 24H may have nothing yet while 6H already does.
+  const [timeframe, setTimeframe] = useState<(typeof candleTimeframes)[number]["label"]>(() => {
+    const withData = candleTimeframes.find((t) => (candlesByTimeframe.get(t.label)?.length ?? 0) > 0);
+    return withData?.label ?? "24H";
+  });
+
   const Icon = tokenIcon[token.symbol] ?? OpenAIIcon;
-  const tf = candleTimeframes.find((t) => t.label === timeframe) ?? candleTimeframes[1];
-  const candles = useMemo(
-    () => buildCandles(history, token.symbol, tf.rangeMs, tf.bucketMs, now),
-    [history, token.symbol, tf.rangeMs, tf.bucketMs, now],
+  const candles = useMemo(() => candlesByTimeframe.get(timeframe) ?? [], [candlesByTimeframe, timeframe]);
+  const nextWithData = candleTimeframes.find(
+    (t) => t.label !== timeframe && (candlesByTimeframe.get(t.label)?.length ?? 0) > 0,
   );
 
   useEffect(() => {
@@ -213,10 +231,25 @@ export function CandlestickModal({
 
         <div className="relative mt-4 h-80">
           <div ref={containerRef} className="h-full w-full rounded-xl border border-white/5 bg-white/[0.03]" />
-          {candles.length < 2 && (
+          {candles.length === 0 && (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-xl text-center">
-              <p className="text-sm text-white/70">Building candle history — check back soon.</p>
-              <p className="mt-1 text-xs text-muted">Not enough snapshots yet for this window.</p>
+              {nextWithData ? (
+                <>
+                  <p className="text-sm text-white/70">Not enough {timeframe} history yet for {token.symbol}.</p>
+                  <button
+                    type="button"
+                    onClick={() => setTimeframe(nextWithData.label)}
+                    className="pointer-events-auto mt-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white transition hover:bg-white/5"
+                  >
+                    Switch to {nextWithData.label} →
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-white/70">Building candle history — check back soon.</p>
+                  <p className="mt-1 text-xs text-muted">No snapshots recorded yet for this token.</p>
+                </>
+              )}
             </div>
           )}
         </div>
