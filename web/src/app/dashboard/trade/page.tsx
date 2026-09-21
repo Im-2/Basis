@@ -72,20 +72,24 @@ function TradePageInner() {
       </div>
 
       <div className="glass-panel flex flex-wrap gap-2 rounded-2xl p-4">
-        {(spreads.length > 0 ? spreads.map((s) => s.symbol) : ["T-OpenAI", "T-Kalshi", "T-SpaceX"]).map((symbol) => (
-          <button
-            key={symbol}
-            type="button"
-            onClick={() => setSelectedSymbolOverride(symbol)}
-            className={`rounded-full border px-4 py-1.5 text-sm transition ${
-              selectedSymbol === symbol
-                ? "border-white/20 bg-white/10 text-white"
-                : "border-white/10 text-white/60 hover:text-white"
-            }`}
-          >
-            {symbol}
-          </button>
-        ))}
+        {(spreads.length > 0 ? spreads.map((s) => s.symbol) : ["T-OpenAI", "T-Kalshi", "T-SpaceX"]).map((symbol) => {
+          const Icon = tokenIcon[symbol] ?? OpenAIIcon;
+          return (
+            <button
+              key={symbol}
+              type="button"
+              onClick={() => setSelectedSymbolOverride(symbol)}
+              className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition ${
+                selectedSymbol === symbol
+                  ? "border-white/20 bg-white/10 text-white"
+                  : "border-white/10 text-white/60 hover:text-white"
+              }`}
+            >
+              <Icon className="h-4 w-4 flex-shrink-0 rounded-full" />
+              {symbol}
+            </button>
+          );
+        })}
       </div>
 
       {loading && !selectedToken ? (
@@ -184,7 +188,7 @@ function TokenPriceChart({ token, history, now }: { token: SpreadRecord; history
     <div className="glass-panel rounded-2xl p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <Icon className="h-7 w-7 flex-shrink-0 rounded-full" />
+          <Icon className="h-7 w-7 flex-shrink-0 rounded-full text-white" />
           <p className="text-base font-semibold text-white">{token.symbol}</p>
         </div>
         <div className="flex gap-1 rounded-full border border-white/10 p-1">
@@ -194,7 +198,7 @@ function TokenPriceChart({ token, history, now }: { token: SpreadRecord; history
               type="button"
               onClick={() => setTimeframe(tf.label)}
               className={`rounded-full px-3 py-1 text-xs transition ${
-                timeframe === tf.label ? "bg-white/10 text-white" : "text-white/50 hover:text-white"
+                timeframe === tf.label ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
               }`}
             >
               {tf.label}
@@ -251,7 +255,7 @@ function InputTokenSelector({
       >
         <CurrentIcon className="h-5 w-5 flex-shrink-0 rounded-full" />
         {value}
-        <ChevronDown className={`h-3.5 w-3.5 text-white/40 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-3.5 w-3.5 text-white/60 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
@@ -441,7 +445,7 @@ function SwapPanel({
               value={amountIn}
               onChange={(e) => setAmountIn(e.target.value)}
               placeholder="0.00"
-              className="w-full bg-transparent text-lg text-white placeholder:text-white/30 focus:outline-none"
+              className="w-full bg-transparent text-lg text-white placeholder:text-white/40 focus:outline-none"
             />
             <InputTokenSelector value={inputSymbol} onChange={onInputSymbolChange} />
           </div>
@@ -453,7 +457,7 @@ function SwapPanel({
           )}
         </div>
 
-        <div className="flex justify-center text-white/30">
+        <div className="flex justify-center text-white/40">
           <ArrowDown className="h-4 w-4" />
         </div>
 
@@ -550,7 +554,7 @@ function SwapPanel({
           </div>
         )}
 
-        <p className="pt-1 text-center text-[11px] text-white/30">Trade execution routed through Jupiter for best price.</p>
+        <p className="pt-1 text-center text-[11px] text-muted">Trade execution routed through Jupiter for best price.</p>
       </div>
     </div>
   );

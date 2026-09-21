@@ -44,7 +44,7 @@ export function SpreadHistoryChart({
             Mark Price
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-accent" />
+            <span className="h-2 w-2 rounded-full" style={{ background: "var(--color-chart-dex-line)" }} />
             DEX Price
           </span>
         </div>
@@ -55,8 +55,8 @@ export function SpreadHistoryChart({
           <ComposedChart data={data}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--color-chart-dex-line)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--color-chart-dex-line)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis dataKey="time" hide />
@@ -88,7 +88,7 @@ export function SpreadHistoryChart({
             <Area
               type="monotone"
               dataKey="dexPrice"
-              stroke="var(--color-accent)"
+              stroke="var(--color-chart-dex-line)"
               strokeWidth={2}
               fill={`url(#${gradientId})`}
               dot={false}

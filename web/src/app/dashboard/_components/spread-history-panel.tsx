@@ -1,9 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ComponentType } from "react";
 import { SpreadHistoryChart } from "@/components/dashboard-preview/spread-history-chart";
+import { OpenAIIcon, KalshiIcon, SpaceXIcon } from "@/components/token-icons";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 import type { SpreadHistoryPoint } from "@/lib/types";
+
+const tokenIcon: Record<string, ComponentType<{ className?: string }>> = {
+  "T-OpenAI": OpenAIIcon,
+  "T-Kalshi": KalshiIcon,
+  "T-SpaceX": SpaceXIcon,
+};
 
 const timeframes = [
   { label: "6H", ms: 6 * 60 * 60 * 1000 },
@@ -47,20 +55,24 @@ export function SpreadHistoryPanel({
         <div>
           <p className="text-sm font-medium text-white">Spread History</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {symbols.map((symbol) => (
-              <button
-                key={symbol}
-                type="button"
-                onClick={() => setSelected(symbol)}
-                className={`rounded-full border px-3 py-1 text-xs transition ${
-                  selected === symbol
-                    ? "border-white/20 bg-white/10 text-white"
-                    : "border-white/10 text-white/60 hover:text-white"
-                }`}
-              >
-                {symbol}
-              </button>
-            ))}
+            {symbols.map((symbol) => {
+              const Icon = tokenIcon[symbol] ?? OpenAIIcon;
+              return (
+                <button
+                  key={symbol}
+                  type="button"
+                  onClick={() => setSelected(symbol)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
+                    selected === symbol
+                      ? "border-white/20 bg-white/10 text-white"
+                      : "border-white/10 text-white/60 hover:text-white"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5 flex-shrink-0 rounded-full" />
+                  {symbol}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -71,7 +83,7 @@ export function SpreadHistoryPanel({
               type="button"
               onClick={() => setTimeframe(tf.label)}
               className={`rounded-full px-3 py-1 text-xs transition ${
-                timeframe === tf.label ? "bg-white/10 text-white" : "text-white/50 hover:text-white"
+                timeframe === tf.label ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
               }`}
             >
               {tf.label}

@@ -13,6 +13,9 @@
   --color-chart-tooltip-bg: #151516;
   --color-chart-tooltip-border: rgba(255, 255, 255, 0.1);
   --color-chart-label: #989898;
+  /* Same as --color-accent in dark mode; overridden to a deeper, more
+     saturated blue in light mode where #3B82F6 on white reads washed out. */
+  --color-chart-dex-line: #3b82f6;
 }
 
 body {
@@ -71,13 +74,17 @@ body {
 .dashboard-theme {
   --color-background: #fafafa;
   --color-foreground: #111111;
-  --color-muted: #6b7280;
+  /* gray-600, ~7.5:1 on white -- comfortably past the 4.5:1 AA floor for
+     body text (gray-500 #6b7280 sits right at ~4.6:1, too close to the edge). */
+  --color-muted: #4b5563;
   --color-white: #111111;
 
   --color-chart-mark: rgba(17, 17, 17, 0.35);
   --color-chart-tooltip-bg: #ffffff;
   --color-chart-tooltip-border: rgba(17, 17, 17, 0.1);
-  --color-chart-label: #6b7280;
+  --color-chart-label: #4b5563;
+  /* blue-700 -- #3B82F6 (blue-500) only hits ~3.7:1 on white, borderline for a line meant to read as primary content. */
+  --color-chart-dex-line: #1d4ed8;
 }
 
 .dashboard-theme .glass-panel {

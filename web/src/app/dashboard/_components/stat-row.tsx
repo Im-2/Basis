@@ -39,7 +39,7 @@ export function StatRow({ spreads }: { spreads: SpreadRecord[] }) {
               </p>
               <Link
                 href={`/dashboard/trade?token=${encodeURIComponent(s.symbol)}`}
-                className="inline-flex items-center gap-1 pt-1 text-white/50 transition hover:text-white"
+                className="inline-flex items-center gap-1 pt-1 text-white/60 transition hover:text-white"
               >
                 Trade <ArrowRight className="h-3 w-3" />
               </Link>

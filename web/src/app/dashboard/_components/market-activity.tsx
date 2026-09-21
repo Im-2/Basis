@@ -1,10 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ComponentType } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { spreadColorClass } from "@/lib/spread-color";
+import { OpenAIIcon, KalshiIcon, SpaceXIcon } from "@/components/token-icons";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
+
+const tokenIcon: Record<string, ComponentType<{ className?: string }>> = {
+  "T-OpenAI": OpenAIIcon,
+  "T-Kalshi": KalshiIcon,
+  "T-SpaceX": SpaceXIcon,
+};
 
 const tabs = [
   { label: "Last 24h", ms: 24 * 60 * 60 * 1000 },
@@ -48,7 +56,7 @@ export function MarketActivity({ history, now }: { history: SpreadRecord[]; now:
               type="button"
               onClick={() => setTab(t.label)}
               className={`rounded-full px-3 py-1 text-xs transition ${
-                tab === t.label ? "bg-white/10 text-white" : "text-white/50 hover:text-white"
+                tab === t.label ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
               }`}
             >
               {t.label}
@@ -69,25 +77,33 @@ export function MarketActivity({ history, now }: { history: SpreadRecord[]; now:
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {rows.map((r, i) => (
-              <tr key={`${r.symbol}-${r.fetchedAt}-${i}`}>
-                <td className="py-2.5 text-white/70">{formatDate(r.fetchedAt)}</td>
-                <td className="py-2.5 text-white/90">{r.symbol}</td>
-                <td className="py-2.5 text-white/60">Snapshot recorded</td>
-                <td className={`py-2.5 font-medium ${spreadColorClass(r.spreadPct)}`}>
-                  {r.spreadPct >= 0 ? "+" : ""}
-                  {r.spreadPct.toFixed(1)}%
-                </td>
-                <td className="py-2.5 text-right">
-                  <Link
-                    href={`/dashboard/trade?token=${encodeURIComponent(r.symbol)}`}
-                    className="inline-flex items-center gap-1 text-xs text-white/50 transition hover:text-white"
-                  >
-                    Trade <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {rows.map((r, i) => {
+              const Icon = tokenIcon[r.symbol] ?? OpenAIIcon;
+              return (
+                <tr key={`${r.symbol}-${r.fetchedAt}-${i}`}>
+                  <td className="py-2.5 text-white/70">{formatDate(r.fetchedAt)}</td>
+                  <td className="py-2.5 text-white/90">
+                    <span className="flex items-center gap-2">
+                      <Icon className="h-4 w-4 flex-shrink-0 rounded-full text-white" />
+                      {r.symbol}
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-white/60">Snapshot recorded</td>
+                  <td className={`py-2.5 font-medium ${spreadColorClass(r.spreadPct)}`}>
+                    {r.spreadPct >= 0 ? "+" : ""}
+                    {r.spreadPct.toFixed(1)}%
+                  </td>
+                  <td className="py-2.5 text-right">
+                    <Link
+                      href={`/dashboard/trade?token=${encodeURIComponent(r.symbol)}`}
+                      className="inline-flex items-center gap-1 text-xs text-white/60 transition hover:text-white"
+                    >
+                      Trade <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {rows.length === 0 && <p className="py-6 text-center text-sm text-muted">No snapshots recorded in this window yet.</p>}
