@@ -27,44 +27,17 @@ export function KalshiIcon({ className }: { className?: string }) {
   return <Image src="/tokens/kalshi.png" alt="Kalshi" width={32} height={32} className={className} unoptimized />;
 }
 
-/** Solana's brand gradient (#9945FF -> #14F195), used for the SOL swap-input option. */
+/** Solana's official mark, sourced from the solana-labs/token-list asset for the wrapped-SOL mint. */
 export function SolIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <linearGradient id="sol-gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#9945FF" />
-          <stop offset="1" stopColor="#14F195" />
-        </linearGradient>
-      </defs>
-      <circle cx="16" cy="16" r="16" fill="url(#sol-gradient)" />
-      <text x="16" y="21" textAnchor="middle" fontSize="14" fontWeight="700" fill="#fff" fontFamily="sans-serif">
-        S
-      </text>
-    </svg>
-  );
+  return <Image src="/tokens/sol.png" alt="SOL" width={32} height={32} className={className} unoptimized />;
 }
 
-/** Circle's official USDC blue (#2775CA). */
+/** Circle's official USDC mark, sourced from the solana-labs/token-list asset for the USDC mint. */
 export function UsdcIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="16" cy="16" r="16" fill="#2775CA" />
-      <text x="16" y="21" textAnchor="middle" fontSize="14" fontWeight="700" fill="#fff" fontFamily="sans-serif">
-        $
-      </text>
-    </svg>
-  );
+  return <Image src="/tokens/usdc.png" alt="USDC" width={32} height={32} className={className} unoptimized />;
 }
 
-/** Tether's official USDT green (#26A17B). */
+/** Tether's official USDT mark, sourced from the solana-labs/token-list asset for the USDT mint. */
 export function UsdtIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="16" cy="16" r="16" fill="#26A17B" />
-      <text x="16" y="21" textAnchor="middle" fontSize="13" fontWeight="700" fill="#fff" fontFamily="sans-serif">
-        T
-      </text>
-    </svg>
-  );
+  return <Image src="/tokens/usdt.svg" alt="USDT" width={32} height={32} className={className} unoptimized />;
 }

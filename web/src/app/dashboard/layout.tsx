@@ -10,7 +10,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
   const wallet = useWallet();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="dashboard-theme flex min-h-screen bg-background">
       <Sidebar wallet={wallet} />
 
       <div className="flex min-w-0 flex-1 flex-col">

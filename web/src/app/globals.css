@@ -7,6 +7,12 @@
   --color-accent: #3b82f6;
 
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+
+  /* Price-chart colors (spread-history-chart.tsx), themed via .dashboard-theme below. */
+  --color-chart-mark: rgba(255, 255, 255, 0.35);
+  --color-chart-tooltip-bg: #151516;
+  --color-chart-tooltip-border: rgba(255, 255, 255, 0.1);
+  --color-chart-label: #989898;
 }
 
 body {
@@ -47,4 +53,35 @@ body {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+/*
+ * Light theme scope for the dashboard/app routes (Overview, Trade, Markets,
+ * Spread History, Alerts, Wallet, Settings) -- applied to a wrapper div in
+ * dashboard/layout.tsx. The landing page never gets this class and stays
+ * on the dark theme above.
+ *
+ * Overriding --color-white is the load-bearing line: every Tailwind
+ * white/opacity utility used throughout the dashboard (text-white,
+ * text-white/40, border-white/10, bg-white/[0.03], hover:text-white, ...)
+ * resolves through var(--color-white) internally, so flipping this one
+ * token flips the whole component tree from white-on-dark to
+ * near-black-on-white without editing every component's classes.
+ */
+.dashboard-theme {
+  --color-background: #fafafa;
+  --color-foreground: #111111;
+  --color-muted: #6b7280;
+  --color-white: #111111;
+
+  --color-chart-mark: rgba(17, 17, 17, 0.35);
+  --color-chart-tooltip-bg: #ffffff;
+  --color-chart-tooltip-border: rgba(17, 17, 17, 0.1);
+  --color-chart-label: #6b7280;
+}
+
+.dashboard-theme .glass-panel {
+  background: rgba(17, 17, 17, 0.03);
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  box-shadow: 0 20px 40px -20px rgba(17, 17, 17, 0.12);
 }

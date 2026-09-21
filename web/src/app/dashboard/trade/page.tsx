@@ -255,7 +255,7 @@ function InputTokenSelector({
       </button>
 
       {open && (
-        <div className="glass-panel absolute right-0 top-full z-20 mt-2 w-36 overflow-hidden rounded-xl border border-white/10 p-1">
+        <div className="glass-panel absolute right-0 top-full z-30 mt-2 w-36 overflow-hidden rounded-xl border border-white/10 p-1">
           {INPUT_TOKENS.map((t) => {
             const OptionIcon = inputTokenIcon[t.symbol];
             return (
@@ -414,29 +414,8 @@ function SwapPanel({
 
       <div className="mt-5 space-y-3">
         <div>
-          <label className="text-xs text-muted">You pay</label>
-          <div className="mt-1.5 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
-            <input
-              type="number"
-              min="0"
-              step="any"
-              inputMode="decimal"
-              value={amountIn}
-              onChange={(e) => setAmountIn(e.target.value)}
-              placeholder="0.00"
-              className="w-full bg-transparent text-lg text-white placeholder:text-white/30 focus:outline-none"
-            />
-            <InputTokenSelector value={inputSymbol} onChange={onInputSymbolChange} />
-          </div>
-
-          <div className="mt-2 flex items-center justify-between gap-3">
-            {wallet.connected ? (
-              <p className="text-xs text-muted">
-                Balance: {inputBalance.toFixed(inputSymbol === "SOL" ? 4 : 2)} {inputSymbol}
-              </p>
-            ) : (
-              <span />
-            )}
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-xs text-muted">You pay</label>
             <div className="flex gap-1.5">
               {[0.25, 0.5, 1].map((pct) => (
                 <button
@@ -451,6 +430,27 @@ function SwapPanel({
               ))}
             </div>
           </div>
+
+          {/* The dropdown opens below this row -- nothing interactive sits underneath it, so it never covers the quick-buy buttons above. */}
+          <div className="relative z-10 mt-1.5 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+            <input
+              type="number"
+              min="0"
+              step="any"
+              inputMode="decimal"
+              value={amountIn}
+              onChange={(e) => setAmountIn(e.target.value)}
+              placeholder="0.00"
+              className="w-full bg-transparent text-lg text-white placeholder:text-white/30 focus:outline-none"
+            />
+            <InputTokenSelector value={inputSymbol} onChange={onInputSymbolChange} />
+          </div>
+
+          {wallet.connected && (
+            <p className="mt-1.5 text-xs text-muted">
+              Balance: {inputBalance.toFixed(inputSymbol === "SOL" ? 4 : 2)} {inputSymbol}
+            </p>
+          )}
         </div>
 
         <div className="flex justify-center text-white/30">

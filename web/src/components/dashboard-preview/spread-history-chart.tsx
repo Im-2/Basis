@@ -1,7 +1,17 @@
 "use client";
 
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useId } from "react";
+import { Area, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { SpreadHistoryPoint } from "@/lib/types";
+
+// Padding proportional to price level (not a flat dollar amount) -- a flat
+// +/-10 padding flattens small real intra-window moves for higher-priced
+// tokens (e.g. a genuine $2 fluctuation on a ~$960 price disappears into a
+// forced $20+ window). 0.15% each side keeps the axis tight enough that
+// real movement is still visible, with a small floor for near-zero ranges.
+function domainPad(value: number): number {
+  return Math.max(value * 0.0015, 0.05);
+}
 
 export function SpreadHistoryChart({
   data,
@@ -15,6 +25,8 @@ export function SpreadHistoryChart({
   /** Skip the internal "Spread History" title/subtitle -- for callers that already show their own panel header. */
   hideHeader?: boolean;
 }) {
+  const gradientId = `dexPriceFill-${useId()}`;
+
   return (
     <div className="h-full rounded-xl border border-white/5 bg-white/[0.03] p-5">
       <div className="flex items-center justify-between">
@@ -40,25 +52,48 @@ export function SpreadHistoryChart({
 
       <div className={`mt-4 ${heightClass}`}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <ComposedChart data={data}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
             <XAxis dataKey="time" hide />
-            <YAxis hide domain={["dataMin - 10", "dataMax + 10"]} />
+            <YAxis
+              hide
+              domain={[(min: number) => min - domainPad(min), (max: number) => max + domainPad(max)]}
+            />
             <Tooltip
               contentStyle={{
-                background: "#151516",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "var(--color-chart-tooltip-bg)",
+                border: "1px solid var(--color-chart-tooltip-border)",
                 borderRadius: 8,
                 fontSize: 12,
               }}
-              labelStyle={{ color: "#989898" }}
+              labelStyle={{ color: "var(--color-chart-label)" }}
               formatter={(value, name) => [
                 `$${Number(value).toFixed(2)}`,
                 name === "markPrice" ? "Mark Price" : "DEX Price",
               ]}
             />
-            <Line type="monotone" dataKey="markPrice" stroke="rgba(255,255,255,0.35)" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="dexPrice" stroke="#3B82F6" strokeWidth={2} dot={false} />
-          </LineChart>
+            <Line
+              type="monotone"
+              dataKey="markPrice"
+              stroke="var(--color-chart-mark)"
+              strokeWidth={1.5}
+              strokeDasharray="4 3"
+              dot={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="dexPrice"
+              stroke="var(--color-accent)"
+              strokeWidth={2}
+              fill={`url(#${gradientId})`}
+              dot={false}
+            />
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </div>
