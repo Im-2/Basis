@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { spreadColorClass } from "@/lib/spread-color";
+import { dashboardSpreadColorClass } from "@/lib/spread-color";
 import { OpenAIIcon, KalshiIcon, SpaceXIcon } from "@/components/token-icons";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
@@ -89,7 +89,7 @@ export function MarketActivity({ history, now }: { history: SpreadRecord[]; now:
                     </span>
                   </td>
                   <td className="py-2.5 text-white/60">Snapshot recorded</td>
-                  <td className={`py-2.5 font-medium ${spreadColorClass(r.spreadPct)}`}>
+                  <td className={`py-2.5 font-medium ${dashboardSpreadColorClass(r.spreadPct)}`}>
                     {r.spreadPct >= 0 ? "+" : ""}
                     {r.spreadPct.toFixed(1)}%
                   </td>

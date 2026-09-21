@@ -3,9 +3,10 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentType } from "react";
 import { useSearchParams } from "next/navigation";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { ArrowDown, ChevronDown } from "lucide-react";
-import { VersionedTransaction } from "@solana/web3.js";
-import { spreadColorClass } from "@/lib/spread-color";
+import { PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { dashboardSpreadColorClass } from "@/lib/spread-color";
 import { OpenAIIcon, KalshiIcon, SpaceXIcon, SolIcon, UsdcIcon, UsdtIcon } from "@/components/token-icons";
 import { SpreadHistoryChart } from "@/components/dashboard-preview/spread-history-chart";
 import {
@@ -25,6 +26,7 @@ import type { SpreadRecord } from "@/lib/dashboard-api-types";
 const QUOTE_DEBOUNCE_MS = 500;
 
 type TxState = "idle" | "awaiting-signature" | "submitting" | "confirmed" | "failed";
+type Side = "buy" | "sell";
 
 const tokenIcon: Record<string, ComponentType<{ className?: string }>> = {
   "T-OpenAI": OpenAIIcon,
@@ -62,7 +64,12 @@ function TradePageInner() {
 
   // Defaults to SOL, since that's what most wallets hold by default. Lifted up (rather than
   // local to SwapPanel) so it can be part of SwapPanel's remount key below.
-  const [inputSymbol, setInputSymbol] = useState<InputToken["symbol"]>("SOL");
+  const [settlementSymbol, setSettlementSymbol] = useState<InputToken["symbol"]>("SOL");
+  // Always defaults to "buy" regardless of spread direction -- we don't track the user's
+  // T-token holdings anywhere else in the app, so there's no reliable signal to auto-switch
+  // to Sell. A premium just gets a caution banner instead of buy-opportunity framing below;
+  // the user can switch to Sell themselves if they're holding and want to act on it.
+  const [side, setSide] = useState<Side>("buy");
 
   return (
     <div className="space-y-6">
@@ -105,13 +112,15 @@ function TradePageInner() {
               <TokenPriceChart token={selectedToken} history={history} now={now} />
             </div>
             <div className="lg:col-span-2">
-              {/* Keyed by output token + input token so switching either remounts the panel with fresh state, instead of an effect resetting it. */}
+              {/* Keyed by output token + settlement token + side so switching any of them remounts the panel with fresh state, instead of an effect resetting it. */}
               <SwapPanel
-                key={`${selectedToken.symbol}:${inputSymbol}`}
+                key={`${selectedToken.symbol}:${settlementSymbol}:${side}`}
                 token={selectedToken}
                 wallet={wallet}
-                inputSymbol={inputSymbol}
-                onInputSymbolChange={setInputSymbol}
+                settlementSymbol={settlementSymbol}
+                onSettlementSymbolChange={setSettlementSymbol}
+                side={side}
+                onSideChange={setSide}
               />
             </div>
           </div>
@@ -121,20 +130,27 @@ function TradePageInner() {
   );
 }
 
-/** The Basis analysis: what the spread is doing right now, in large type, above the chart/panel. */
+/**
+ * The Basis analysis: what the spread is doing right now, in large type,
+ * above the chart/panel. A discount (negative spread) is the real buy
+ * signal -- green, "good entry point". A premium (positive spread) just
+ * means it's trading above fair value right now -- amber, informational,
+ * no "opportunity" language.
+ */
 function SpreadInsight({ token }: { token: SpreadRecord }) {
-  const positive = token.spreadPct >= 0;
+  const discount = token.spreadPct < 0;
   const pct = Math.abs(token.spreadPct).toFixed(1);
 
   return (
     <div className="glass-panel rounded-2xl p-6">
       <div
         className={`rounded-xl border px-4 py-3 text-sm font-medium ${
-          positive ? "border-green-500/20 bg-green-500/10 text-green-300" : "border-red-500/20 bg-red-500/10 text-red-300"
+          discount ? "border-green-500/20 bg-green-500/10 text-green-300" : "border-amber-500/20 bg-amber-500/10 text-amber-300"
         }`}
       >
-        {token.symbol} is trading {positive ? "+" : "-"}
-        {pct}% {positive ? "above" : "below"} its Tessera mark price.
+        {discount
+          ? `${token.symbol} is trading ${pct}% below its Tessera mark price — a good entry point.`
+          : `${token.symbol} is trading ${pct}% above its Tessera mark price.`}
       </div>
 
       <div className="mt-6 grid grid-cols-3 gap-4 text-center sm:text-left">
@@ -148,8 +164,8 @@ function SpreadInsight({ token }: { token: SpreadRecord }) {
         </div>
         <div>
           <p className="text-xs uppercase tracking-wide text-muted">Spread</p>
-          <p className={`mt-1 text-2xl font-semibold sm:text-3xl ${spreadColorClass(token.spreadPct)}`}>
-            {positive ? "+" : ""}
+          <p className={`mt-1 text-2xl font-semibold sm:text-3xl ${dashboardSpreadColorClass(token.spreadPct)}`}>
+            {token.spreadPct >= 0 ? "+" : ""}
             {token.spreadPct.toFixed(1)}%
           </p>
         </div>
@@ -223,8 +239,8 @@ function TokenPriceChart({ token, history, now }: { token: SpreadRecord; history
   );
 }
 
-/** Custom-styled input-token pill + popover, replacing the native <select>. */
-function InputTokenSelector({
+/** Custom-styled settlement-token pill + popover (SOL/USDC/USDT), replacing the native <select>. */
+function SettlementTokenSelector({
   value,
   onChange,
 }: {
@@ -285,25 +301,42 @@ function InputTokenSelector({
   );
 }
 
+/** Non-interactive symbol+icon pill for whichever side of the trade is fixed (the T-token). */
+function StaticTokenBadge({ symbol }: { symbol: string }) {
+  const Icon = tokenIcon[symbol] ?? OpenAIIcon;
+  return (
+    <div className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-1.5 pl-1.5 pr-3 text-sm font-medium text-white">
+      <Icon className="h-5 w-5 flex-shrink-0 rounded-full text-white" />
+      {symbol}
+    </div>
+  );
+}
+
 function SwapPanel({
   token,
   wallet,
-  inputSymbol,
-  onInputSymbolChange,
+  settlementSymbol,
+  onSettlementSymbolChange,
+  side,
+  onSideChange,
 }: {
   token: SpreadRecord;
   wallet: WalletState;
-  inputSymbol: InputToken["symbol"];
-  onInputSymbolChange: (symbol: InputToken["symbol"]) => void;
+  settlementSymbol: InputToken["symbol"];
+  onSettlementSymbolChange: (symbol: InputToken["symbol"]) => void;
+  side: Side;
+  onSideChange: (side: Side) => void;
 }) {
-  const inputToken = INPUT_TOKENS.find((t) => t.symbol === inputSymbol) ?? INPUT_TOKENS[0];
-  const inputBalance = inputBalanceFor(wallet, inputSymbol);
+  const { connection } = useConnection();
+  const settlementToken = INPUT_TOKENS.find((t) => t.symbol === settlementSymbol) ?? INPUT_TOKENS[0];
+  const settlementBalance = inputBalanceFor(wallet, settlementSymbol);
 
   const [amountIn, setAmountIn] = useState("");
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
-  const [outputDecimals, setOutputDecimals] = useState<number | null>(null);
+  const [tokenDecimals, setTokenDecimals] = useState<number | null>(null);
+  const [tokenBalance, setTokenBalance] = useState(0);
   const [txState, setTxState] = useState<TxState>("idle");
   const [txSignature, setTxSignature] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
@@ -312,29 +345,62 @@ function SwapPanel({
     let cancelled = false;
     getMintDecimals(token.mint)
       .then((d) => {
-        if (!cancelled) setOutputDecimals(d);
+        if (!cancelled) setTokenDecimals(d);
       })
-      .catch((err) => console.error("Failed to fetch output token decimals:", err));
+      .catch((err) => console.error(`Failed to fetch ${token.symbol} decimals:`, err));
     return () => {
       cancelled = true;
     };
-  }, [token.mint]);
+  }, [token.mint, token.symbol]);
+
+  // Only needed for the Sell side (paying with the T-token), fetched on demand rather than
+  // via the shared WalletBalanceProvider since it's specific to whichever token is selected.
+  useEffect(() => {
+    if (side !== "sell" || !wallet.connected || !wallet.address) return;
+    let cancelled = false;
+    async function loadTokenBalance() {
+      try {
+        const owner = new PublicKey(wallet.address!);
+        const mint = new PublicKey(token.mint);
+        const accounts = await connection.getParsedTokenAccountsByOwner(owner, { mint });
+        if (cancelled) return;
+        const total = accounts.value.reduce(
+          (sum, { account }) => sum + (account.data.parsed?.info?.tokenAmount?.uiAmount ?? 0),
+          0,
+        );
+        setTokenBalance(total);
+      } catch (err) {
+        console.error(`Failed to fetch ${token.symbol} balance:`, err);
+      }
+    }
+    loadTokenBalance();
+    return () => {
+      cancelled = true;
+    };
+  }, [side, wallet.connected, wallet.address, token.mint, token.symbol, connection]);
+
+  const paySymbol = side === "buy" ? settlementSymbol : token.symbol;
+  const payDecimals = side === "buy" ? settlementToken.decimals : tokenDecimals;
+  const receiveDecimals = side === "buy" ? tokenDecimals : settlementToken.decimals;
+  const payMint = side === "buy" ? settlementToken.mint : token.mint;
+  const receiveMint = side === "buy" ? token.mint : settlementToken.mint;
+  const payBalance = side === "buy" ? settlementBalance : wallet.connected ? tokenBalance : 0;
 
   const amountNum = Number(amountIn);
-  const hasValidAmount = amountIn.trim() !== "" && Number.isFinite(amountNum) && amountNum > 0;
-  const insufficientBalanceLocally = wallet.connected && hasValidAmount && amountNum > inputBalance;
+  const hasValidAmount = amountIn.trim() !== "" && Number.isFinite(amountNum) && amountNum > 0 && payDecimals !== null;
+  const insufficientBalanceLocally = wallet.connected && hasValidAmount && amountNum > payBalance;
 
   useEffect(() => {
-    if (!hasValidAmount) return;
+    if (!hasValidAmount || payDecimals === null) return;
 
     let cancelled = false;
     const handle = setTimeout(async () => {
       setQuoteLoading(true);
       try {
-        const rawAmount = Math.round(amountNum * 10 ** inputToken.decimals).toString();
+        const rawAmount = Math.round(amountNum * 10 ** payDecimals).toString();
         const result = await getOrder({
-          inputMint: inputToken.mint,
-          outputMint: token.mint,
+          inputMint: payMint,
+          outputMint: receiveMint,
           amount: rawAmount,
           taker: wallet.connected && wallet.address ? wallet.address : undefined,
         });
@@ -356,13 +422,14 @@ function SwapPanel({
     };
     // amountNum is derived from amountIn; depending on the string avoids redundant re-runs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amountIn, inputToken.mint, inputToken.decimals, token.mint, wallet.connected, wallet.address, hasValidAmount]);
+  }, [amountIn, payMint, receiveMint, payDecimals, wallet.connected, wallet.address, hasValidAmount]);
 
   // Ignore a stale quote once the input becomes invalid, without resetting state synchronously in an effect.
   const activeOrder = hasValidAmount ? order : null;
   const activeQuoteError = hasValidAmount ? quoteError : null;
 
-  const outputAmount = activeOrder && outputDecimals !== null ? Number(activeOrder.outAmount) / 10 ** outputDecimals : null;
+  const receiveAmount =
+    activeOrder && receiveDecimals !== null ? Number(activeOrder.outAmount) / 10 ** receiveDecimals : null;
   const serverError = activeOrder?.transaction === "" && activeOrder.errorCode !== undefined;
 
   async function handleSwap() {
@@ -405,16 +472,45 @@ function SwapPanel({
   else if (txState === "submitting") actionLabel = "Submitting…";
   else if (quoteLoading) actionLabel = "Pricing this trade…";
   else if (!hasValidAmount) actionLabel = "Enter an amount";
-  else if (insufficientBalanceLocally) actionLabel = `Insufficient ${inputSymbol} balance`;
+  else if (insufficientBalanceLocally) actionLabel = `Insufficient ${paySymbol} balance`;
   else if (serverError) actionLabel = "Unable to trade";
 
-  const positive = token.spreadPct >= 0;
+  const premium = token.spreadPct >= 0;
   const pctLabel = Math.abs(token.spreadPct).toFixed(1);
+  const balanceDecimalsFor = (symbol: string) => (symbol === token.symbol || symbol === "SOL" ? 4 : 2);
 
   return (
     <div className="glass-panel rounded-2xl p-6">
-      <p className="text-sm font-medium text-white">Buy {token.symbol}</p>
-      <p className="mt-1 text-xs text-muted">Spend {inputSymbol} to act on the spread above.</p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium text-white">
+          {side === "buy" ? "Buy" : "Sell"} {token.symbol}
+        </p>
+        <div className="flex gap-1 rounded-full border border-white/10 p-1">
+          <button
+            type="button"
+            onClick={() => onSideChange("buy")}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+              side === "buy" ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
+            }`}
+          >
+            Buy
+          </button>
+          <button
+            type="button"
+            onClick={() => onSideChange("sell")}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+              side === "sell" ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
+            }`}
+          >
+            Sell
+          </button>
+        </div>
+      </div>
+      <p className="mt-1 text-xs text-muted">
+        {side === "buy"
+          ? `Spend ${settlementSymbol} to act on the spread above.`
+          : `Sell ${token.symbol} for ${settlementSymbol}.`}
+      </p>
 
       <div className="mt-5 space-y-3">
         <div>
@@ -425,8 +521,8 @@ function SwapPanel({
                 <button
                   key={pct}
                   type="button"
-                  disabled={!wallet.connected || inputBalance <= 0}
-                  onClick={() => setAmountIn(formatAmountInput(inputBalance * pct))}
+                  disabled={!wallet.connected || payBalance <= 0}
+                  onClick={() => setAmountIn(formatAmountInput(payBalance * pct))}
                   className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   {pct === 1 ? "100%" : `${pct * 100}%`}
@@ -447,12 +543,16 @@ function SwapPanel({
               placeholder="0.00"
               className="w-full bg-transparent text-lg text-white placeholder:text-white/40 focus:outline-none"
             />
-            <InputTokenSelector value={inputSymbol} onChange={onInputSymbolChange} />
+            {side === "buy" ? (
+              <SettlementTokenSelector value={settlementSymbol} onChange={onSettlementSymbolChange} />
+            ) : (
+              <StaticTokenBadge symbol={token.symbol} />
+            )}
           </div>
 
           {wallet.connected && (
             <p className="mt-1.5 text-xs text-muted">
-              Balance: {inputBalance.toFixed(inputSymbol === "SOL" ? 4 : 2)} {inputSymbol}
+              Balance: {payBalance.toFixed(balanceDecimalsFor(paySymbol))} {paySymbol}
             </p>
           )}
         </div>
@@ -467,11 +567,15 @@ function SwapPanel({
             <span className="w-full text-lg text-white">
               {quoteLoading
                 ? "…"
-                : outputAmount !== null
-                  ? outputAmount.toLocaleString("en-US", { maximumFractionDigits: 6 })
+                : receiveAmount !== null
+                  ? receiveAmount.toLocaleString("en-US", { maximumFractionDigits: 6 })
                   : "0.00"}
             </span>
-            <span className="flex-shrink-0 text-sm text-muted">{token.symbol}</span>
+            {side === "buy" ? (
+              <StaticTokenBadge symbol={token.symbol} />
+            ) : (
+              <SettlementTokenSelector value={settlementSymbol} onChange={onSettlementSymbolChange} />
+            )}
           </div>
         </div>
 
@@ -489,8 +593,8 @@ function SwapPanel({
         {serverError && <p className="text-xs text-red-500">{activeOrder?.errorMessage ?? "This trade couldn't be built."}</p>}
         {insufficientBalanceLocally && !serverError && (
           <p className="text-xs text-red-500">
-            You have {inputBalance.toFixed(inputSymbol === "SOL" ? 4 : 2)} {inputSymbol}, which isn&apos;t enough to cover
-            this trade.
+            You have {payBalance.toFixed(balanceDecimalsFor(paySymbol))} {paySymbol}, which isn&apos;t enough to cover this
+            trade.
           </p>
         )}
         {wallet.connected && !wallet.signTransaction && (
@@ -520,7 +624,8 @@ function SwapPanel({
             {txState === "submitting" && "Submitting your trade…"}
             {txState === "confirmed" && (
               <>
-                You bought {token.symbol} at a {pctLabel}% {positive ? "premium" : "discount"} to mark price.{" "}
+                You {side === "buy" ? "bought" : "sold"} {token.symbol} at a {pctLabel}% {premium ? "premium" : "discount"} to
+                mark price.{" "}
                 {txSignature && (
                   <a
                     href={`https://solscan.io/tx/${txSignature}`}

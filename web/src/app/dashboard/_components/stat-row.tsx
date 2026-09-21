@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { StatCard } from "@/components/dashboard-preview/stat-card";
-import { spreadColorClass } from "@/lib/spread-color";
+import { dashboardSpreadColorClass } from "@/lib/spread-color";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
 const symbolIcon: Record<string, "openai" | "kalshi" | "spacex"> = {
@@ -26,7 +26,7 @@ export function StatRow({ spreads }: { spreads: SpreadRecord[] }) {
           trendLabel="vs mark price"
           icon={symbolIcon[s.symbol] ?? "openai"}
           className={GLASS_CARD}
-          valueClassName={spreadColorClass(s.spreadPct)}
+          valueClassName={dashboardSpreadColorClass(s.spreadPct)}
           extra={
             <div className="mt-3 space-y-1 border-t border-white/5 pt-3 text-xs">
               <p>

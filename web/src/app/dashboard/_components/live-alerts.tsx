@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import { ArrowRight } from "lucide-react";
-import { spreadColorClass } from "@/lib/spread-color";
+import { dashboardSpreadColorClass } from "@/lib/spread-color";
 import { OpenAIIcon, KalshiIcon, SpaceXIcon } from "@/components/token-icons";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
@@ -119,7 +119,7 @@ export function LiveAlerts({
                   <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 rounded-full text-white" />
                   <span>
                     {alert.titlePrefix}
-                    <span className={spreadColorClass(alert.titlePct)}>
+                    <span className={dashboardSpreadColorClass(alert.titlePct)}>
                       {alert.titlePct >= 0 ? "+" : ""}
                       {alert.titlePct.toFixed(1)}%
                     </span>
