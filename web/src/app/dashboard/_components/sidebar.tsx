@@ -69,7 +69,11 @@ function SidebarContent({
 }) {
   return (
     <>
-      <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2 px-2 text-foreground">
+      <Link
+        href="/"
+        onClick={onNavigate}
+        className="flex items-center gap-2 px-2 text-foreground transition-opacity hover:opacity-80"
+      >
         <Logo className="h-7 w-7" />
         <span className="text-lg font-semibold tracking-tight text-white">Basis</span>
       </Link>
