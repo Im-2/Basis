@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowDown } from "lucide-react";
 import { VersionedTransaction } from "@solana/web3.js";
-import { StatCard } from "@/components/dashboard-preview/stat-card";
 import { spreadColorClass } from "@/lib/spread-color";
 import {
   USDC_DECIMALS,
@@ -20,14 +19,7 @@ import { useWallet, type WalletState } from "../use-wallet";
 import { useDashboardData } from "../use-dashboard-data";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
-const GLASS_CARD = "glass-panel rounded-xl p-4";
 const QUOTE_DEBOUNCE_MS = 500;
-
-const symbolIcon: Record<string, "openai" | "kalshi" | "spacex"> = {
-  "T-OpenAI": "openai",
-  "T-Kalshi": "kalshi",
-  "T-SpaceX": "spacex",
-};
 
 type TxState = "idle" | "awaiting-signature" | "submitting" | "confirmed" | "failed";
 
@@ -46,7 +38,7 @@ function TradePageInner() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-white">Trade</h1>
-        <p className="mt-1 text-sm text-muted">Swap USDC for tokenized pre-IPO stocks via Jupiter.</p>
+        <p className="mt-1 text-sm text-muted">Act on a live Basis spread, backed by Tessera and Jupiter data.</p>
       </div>
 
       <div className="glass-panel flex flex-wrap gap-2 rounded-2xl p-4">
@@ -67,37 +59,53 @@ function TradePageInner() {
       </div>
 
       {loading && !selectedToken ? (
-        <div className="glass-panel h-[104px] animate-pulse rounded-xl" />
+        <div className="glass-panel h-[280px] animate-pulse rounded-2xl" />
       ) : !selectedToken ? (
         <div className="glass-panel rounded-2xl p-6 text-center text-sm text-muted">No live token data available yet.</div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <StatCard
-            label={`${selectedToken.symbol} Spread`}
-            value={`${selectedToken.spreadPct >= 0 ? "+" : ""}${selectedToken.spreadPct.toFixed(1)}%`}
-            trend={selectedToken.spreadPct >= 0 ? "up" : "down"}
-            trendLabel="vs mark price"
-            icon={symbolIcon[selectedToken.symbol] ?? "openai"}
-            className={GLASS_CARD}
-            valueClassName={spreadColorClass(selectedToken.spreadPct)}
-            extra={
-              <div className="mt-3 space-y-1 border-t border-white/5 pt-3 text-xs">
-                <p>
-                  <span className="text-muted">Mark: </span>
-                  <span className="text-white">${selectedToken.markPrice.toFixed(2)}</span>
-                </p>
-                <p>
-                  <span className="text-muted">DEX: </span>
-                  <span className="text-white">${selectedToken.dexPrice.toFixed(2)}</span>
-                </p>
-              </div>
-            }
-          />
-
+        <>
+          <SpreadInsight token={selectedToken} />
           {/* Keyed by symbol so switching tokens remounts the panel with fresh state, instead of an effect resetting it. */}
           <SwapPanel key={selectedToken.symbol} token={selectedToken} wallet={wallet} />
-        </div>
+        </>
       )}
+    </div>
+  );
+}
+
+/** The Basis analysis: what the spread is doing right now, in large type, above the swap inputs. */
+function SpreadInsight({ token }: { token: SpreadRecord }) {
+  const positive = token.spreadPct >= 0;
+  const pct = Math.abs(token.spreadPct).toFixed(1);
+
+  return (
+    <div className="glass-panel rounded-2xl p-6">
+      <div
+        className={`rounded-xl border px-4 py-3 text-sm font-medium ${
+          positive ? "border-green-500/20 bg-green-500/10 text-green-300" : "border-red-500/20 bg-red-500/10 text-red-300"
+        }`}
+      >
+        {token.symbol} is trading {positive ? "+" : "-"}
+        {pct}% {positive ? "above" : "below"} its Tessera mark price.
+      </div>
+
+      <div className="mt-6 grid grid-cols-3 gap-4 text-center sm:text-left">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted">Mark Price</p>
+          <p className="mt-1 text-2xl font-semibold text-white sm:text-3xl">${token.markPrice.toFixed(2)}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted">DEX Price</p>
+          <p className="mt-1 text-2xl font-semibold text-white sm:text-3xl">${token.dexPrice.toFixed(2)}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted">Spread</p>
+          <p className={`mt-1 text-2xl font-semibold sm:text-3xl ${spreadColorClass(token.spreadPct)}`}>
+            {positive ? "+" : ""}
+            {token.spreadPct.toFixed(1)}%
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -148,7 +156,7 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
       } catch (err) {
         if (cancelled) return;
         setOrder(null);
-        setQuoteError(err instanceof Error ? err.message : "Failed to fetch a quote from Jupiter.");
+        setQuoteError(err instanceof Error ? err.message : "Failed to fetch a live quote.");
       } finally {
         if (!cancelled) setQuoteLoading(false);
       }
@@ -191,11 +199,11 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
       } else {
         setTxState("failed");
         setTxSignature(result.signature ?? null);
-        setTxError(result.error ?? `Jupiter execution failed (code ${result.code}).`);
+        setTxError(result.error ?? `Execution failed (code ${result.code}).`);
       }
     } catch (err) {
       setTxState("failed");
-      setTxError(err instanceof Error ? err.message : "The swap could not be completed.");
+      setTxError(err instanceof Error ? err.message : "The trade could not be completed.");
     }
   }
 
@@ -203,22 +211,22 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
   const swapDisabledWhileConnected =
     !hasValidAmount || quoteLoading || !activeOrder?.transaction || insufficientBalanceLocally || swapBusy;
 
-  let swapButtonLabel = "Swap";
-  if (!wallet.connected) swapButtonLabel = "Connect Wallet to Swap";
-  else if (txState === "awaiting-signature") swapButtonLabel = "Awaiting signature…";
-  else if (txState === "submitting") swapButtonLabel = "Submitting…";
-  else if (quoteLoading) swapButtonLabel = "Getting quote…";
-  else if (!hasValidAmount) swapButtonLabel = "Enter an amount";
-  else if (insufficientBalanceLocally) swapButtonLabel = "Insufficient USDC balance";
-  else if (serverError) swapButtonLabel = "Unable to swap";
+  let actionLabel = "Act on This Spread";
+  if (!wallet.connected) actionLabel = "Connect Wallet to Trade";
+  else if (txState === "awaiting-signature") actionLabel = "Awaiting signature…";
+  else if (txState === "submitting") actionLabel = "Submitting…";
+  else if (quoteLoading) actionLabel = "Pricing this trade…";
+  else if (!hasValidAmount) actionLabel = "Enter an amount";
+  else if (insufficientBalanceLocally) actionLabel = "Insufficient USDC balance";
+  else if (serverError) actionLabel = "Unable to trade";
+
+  const positive = token.spreadPct >= 0;
+  const pctLabel = Math.abs(token.spreadPct).toFixed(1);
 
   return (
-    <div className="glass-panel rounded-2xl p-6 lg:col-span-2">
-      <p className="text-sm font-medium text-white">Swap</p>
-      <p className="mt-1 text-xs text-muted">
-        USDC → {token.symbol}
-        {activeOrder && !serverError && <span className="ml-2 text-white/40">via {activeOrder.router}</span>}
-      </p>
+    <div className="glass-panel rounded-2xl p-6">
+      <p className="text-sm font-medium text-white">Buy {token.symbol}</p>
+      <p className="mt-1 text-xs text-muted">Spend USDC to act on the spread above.</p>
 
       <div className="mt-5 space-y-3">
         <div>
@@ -268,10 +276,10 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
         )}
 
         {activeQuoteError && <p className="text-xs text-red-500">{activeQuoteError}</p>}
-        {serverError && <p className="text-xs text-red-500">{activeOrder?.errorMessage ?? "Jupiter could not build this swap."}</p>}
+        {serverError && <p className="text-xs text-red-500">{activeOrder?.errorMessage ?? "This trade couldn't be built."}</p>}
         {insufficientBalanceLocally && !serverError && (
           <p className="text-xs text-red-500">
-            You have ${wallet.usdcBalance.toFixed(2)} USDC, which isn&apos;t enough to cover this swap.
+            You have ${wallet.usdcBalance.toFixed(2)} USDC, which isn&apos;t enough to cover this trade.
           </p>
         )}
         {wallet.connected && !wallet.signTransaction && (
@@ -284,7 +292,7 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
           disabled={wallet.connected && (swapDisabledWhileConnected || !wallet.signTransaction)}
           className="btn-primary w-full rounded-full px-4 py-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {swapButtonLabel}
+          {actionLabel}
         </button>
 
         {txState !== "idle" && (
@@ -298,10 +306,10 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
             }`}
           >
             {txState === "awaiting-signature" && "Waiting for your wallet to sign the transaction…"}
-            {txState === "submitting" && "Submitting the swap to Jupiter…"}
+            {txState === "submitting" && "Submitting your trade…"}
             {txState === "confirmed" && (
               <>
-                Swap confirmed.{" "}
+                You bought {token.symbol} at a {pctLabel}% {positive ? "premium" : "discount"} to mark price.{" "}
                 {txSignature && (
                   <a
                     href={`https://solscan.io/tx/${txSignature}`}
@@ -316,7 +324,7 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
             )}
             {txState === "failed" && (
               <>
-                Swap failed: {txError}
+                Trade failed: {txError}
                 {txSignature && (
                   <>
                     {" "}
@@ -334,6 +342,8 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
             )}
           </div>
         )}
+
+        <p className="pt-1 text-center text-[11px] text-white/30">Trade execution routed through Jupiter for best price.</p>
       </div>
     </div>
   );
