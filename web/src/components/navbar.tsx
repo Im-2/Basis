@@ -4,7 +4,6 @@ import { Logo } from "./logo";
 const navLinks = [
   { label: "Product", href: "#product" },
   { label: "How It Works", href: "#how-it-works" },
-  { label: "Tokens", href: "#tokens" },
   { label: "Docs", href: "#docs" },
 ];
 
@@ -23,11 +22,14 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
+          <Link href="/dashboard/markets" className="text-sm text-white/70 transition hover:text-white">
+            Tokens
+          </Link>
         </div>
 
-        <a href="#app" className="btn-primary rounded-full px-5 py-2 text-sm font-medium transition">
+        <Link href="/dashboard" className="btn-primary rounded-full px-5 py-2 text-sm font-medium transition">
           Launch App
-        </a>
+        </Link>
       </nav>
     </header>
   );

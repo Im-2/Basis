@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight, PlayCircle } from "lucide-react";
 import { DashboardPreview } from "./dashboard-preview";
 
@@ -22,13 +23,13 @@ export function Hero() {
         </p>
 
         <div className="mt-7 flex flex-col items-center gap-4 sm:flex-row">
-          <a
-            href="#tokens"
+          <Link
+            href="/dashboard/markets"
             className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition"
           >
             Explore Markets
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
           <a
             href="#how-it-works"
             className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/5"
