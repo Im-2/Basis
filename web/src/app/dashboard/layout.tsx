@@ -6,15 +6,13 @@ import { SolanaWalletProvider } from "@/components/solana/wallet-provider";
 import { Sidebar } from "./_components/sidebar";
 import { TopBar } from "./_components/top-bar";
 import { useWallet, WalletBalanceProvider } from "./use-wallet";
-import { useTheme, ThemeProvider } from "./use-theme";
 
 function DashboardShell({ children }: { children: ReactNode }) {
   const wallet = useWallet();
-  const { theme } = useTheme();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className={`flex min-h-screen bg-background ${theme === "light" ? "dashboard-theme" : ""}`}>
+    <div className="flex min-h-screen bg-background">
       <Sidebar wallet={wallet} mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -27,12 +25,10 @@ function DashboardShell({ children }: { children: ReactNode }) {
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider>
-      <SolanaWalletProvider>
-        <WalletBalanceProvider>
-          <DashboardShell>{children}</DashboardShell>
-        </WalletBalanceProvider>
-      </SolanaWalletProvider>
-    </ThemeProvider>
+    <SolanaWalletProvider>
+      <WalletBalanceProvider>
+        <DashboardShell>{children}</DashboardShell>
+      </WalletBalanceProvider>
+    </SolanaWalletProvider>
   );
 }

@@ -8,7 +8,7 @@ import { CandlestickSeries, ColorType, createChart } from "lightweight-charts";
 import type { IChartApi, ISeriesApi, UTCTimestamp } from "lightweight-charts";
 import { dashboardSpreadColorClass } from "@/lib/spread-color";
 import { OpenAIIcon, KalshiIcon, SpaceXIcon } from "@/components/token-icons";
-import { useTheme } from "../use-theme";
+import { useTheme } from "@/lib/theme";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
 
 const tokenIcon: Record<string, ComponentType<{ className?: string }>> = {

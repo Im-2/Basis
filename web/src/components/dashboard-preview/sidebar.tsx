@@ -10,8 +10,8 @@ const navItems = [
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-56 flex-shrink-0 border-r border-white/5 bg-[#0a0a0b] px-4 py-5 sm:block">
-      <div className="flex items-center gap-2 px-2">
+    <aside className="hidden w-56 flex-shrink-0 border-r border-white/5 bg-[var(--color-panel-sunken)] px-4 py-5 sm:block">
+      <div className="flex items-center gap-2 px-2 text-foreground">
         <Logo className="h-6 w-6" />
         <span className="text-sm font-semibold text-white">Basis</span>
       </div>

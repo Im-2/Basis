@@ -8,29 +8,26 @@ import type { SpreadRecord } from "@backend/types";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function GET() {
+// Reads the local history store defensively: on a read-only filesystem (e.g. a
+// serverless deployment without a writable BASIS_DATA_DIR) this must not throw,
+// since a history-read failure should never blank out live spread data.
+function safeGetAllHistory(): SpreadRecord[] {
   try {
-    const spreads = await computeSpreads();
+    return getAllHistory();
+  } catch {
+    return [];
+  }
+}
 
-    // Feed the same JSON-lines store the CLI poller writes to, so the
-    // dashboard's own traffic also grows the history it reads back.
-    if (spreads.length > 0) {
-      appendSnapshot(spreads);
-    }
+export async function GET() {
+  let spreads: SpreadRecord[];
 
-    const history = getAllHistory();
-
-    return NextResponse.json({
-      spreads,
-      history,
-      stale: false,
-      error: null,
-      fetchedAt: new Date().toISOString(),
-    });
+  try {
+    spreads = await computeSpreads();
   } catch (err) {
     // Live fetch failed (e.g. Tessera or Jupiter unreachable) -- fall back to
     // the most recent cached snapshot per symbol rather than a blank page.
-    const history = getAllHistory();
+    const history = safeGetAllHistory();
     const latestBySymbol = new Map<string, SpreadRecord>();
     for (const record of history) {
       latestBySymbol.set(record.symbol, record);
@@ -48,4 +45,26 @@ export async function GET() {
       { status: cachedSpreads.length > 0 ? 200 : 503 },
     );
   }
+
+  // Feed the same JSON-lines store the CLI poller writes to, so the
+  // dashboard's own traffic also grows the history it reads back. Best-effort:
+  // a write failure (e.g. read-only filesystem) must not blank out the live
+  // spreads we already have.
+  try {
+    if (spreads.length > 0) {
+      appendSnapshot(spreads);
+    }
+  } catch {
+    // ignore -- live spreads below are unaffected
+  }
+
+  const history = safeGetAllHistory();
+
+  return NextResponse.json({
+    spreads,
+    history,
+    stale: false,
+    error: null,
+    fetchedAt: new Date().toISOString(),
+  });
 }

@@ -2,7 +2,7 @@
 
 import { Bell, HelpCircle, Menu, Moon, Search, Sun } from "lucide-react";
 import type { WalletState } from "../use-wallet";
-import { useTheme } from "../use-theme";
+import { useTheme } from "@/lib/theme";
 
 export function TopBar({ wallet, onMenuClick }: { wallet: WalletState; onMenuClick?: () => void }) {
   const { theme, toggleTheme } = useTheme();

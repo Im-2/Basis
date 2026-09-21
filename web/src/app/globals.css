@@ -20,6 +20,9 @@
      "premium" case (spread-color.ts) -- same blue, same meaning: "trading
      above mark price", wherever it shows up. */
   --color-premium: #3b82f6;
+  /* Slightly-sunken panel shade, distinct from --color-background -- used by
+     the hero's decorative dashboard-preview mockup sidebar. */
+  --color-panel-sunken: #0a0a0b;
 }
 
 body {
@@ -49,8 +52,16 @@ body {
   background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 40%), var(--color-background);
 }
 
+.light-theme .hero-glow {
+  background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.05), transparent 40%), var(--color-background);
+}
+
 .cta-glow {
   background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 40%), var(--color-background);
+}
+
+.light-theme .cta-glow {
+  background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.035), transparent 40%), var(--color-background);
 }
 
 /* Shared glassmorphism treatment -- used by the dashboard preview panel and the
@@ -63,19 +74,22 @@ body {
 }
 
 /*
- * Light theme scope for the dashboard/app routes (Overview, Trade, Markets,
- * Spread History, Alerts, Wallet, Settings) -- applied to a wrapper div in
- * dashboard/layout.tsx. The landing page never gets this class and stays
- * on the dark theme above.
+ * App-wide light theme scope -- applied to a wrapper div in ThemeProvider
+ * (lib/theme.tsx), so it covers both the landing page and the dashboard
+ * routes (Overview, Trade, Markets, Spread History, Alerts, Wallet,
+ * Settings) under one shared toggle.
  *
  * Overriding --color-white is the load-bearing line: every Tailwind
- * white/opacity utility used throughout the dashboard (text-white,
+ * white/opacity utility used throughout the app (text-white,
  * text-white/40, border-white/10, bg-white/[0.03], hover:text-white, ...)
  * resolves through var(--color-white) internally, so flipping this one
  * token flips the whole component tree from white-on-dark to
- * near-black-on-white without editing every component's classes.
+ * near-black-on-white without editing every component's classes. This is
+ * also why the landing page's decorative blurred-circle "ambient glow"
+ * elements (bg-white/10 blur-[...]) need no separate light-mode CSS: they
+ * ride the same token flip and come out as a faint gray blur for free.
  */
-.dashboard-theme {
+.light-theme {
   --color-background: #fafafa;
   --color-foreground: #111111;
   /* gray-600, ~7.5:1 on white -- comfortably past the 4.5:1 AA floor for
@@ -92,9 +106,10 @@ body {
      something meant to read as primary content (a chart line, a headline
      spread %). */
   --color-premium: #1d4ed8;
+  --color-panel-sunken: #f0f0f1;
 }
 
-.dashboard-theme .glass-panel {
+.light-theme .glass-panel {
   background: rgba(17, 17, 17, 0.03);
   border: 1px solid rgba(17, 17, 17, 0.06);
   box-shadow: 0 20px 40px -20px rgba(17, 17, 17, 0.12);

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { ThemeProvider } from "@/lib/theme";
 import "./globals.css";
 
 const geist = localFont({
@@ -18,7 +19,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={geist.variable}>
-      <body className="bg-background text-foreground antialiased">{children}</body>
+      <body className="bg-background text-foreground antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

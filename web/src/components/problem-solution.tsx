@@ -69,7 +69,7 @@ export function ProblemSolution() {
             </p>
           </motion.div>
 
-          <div className="glass-panel absolute left-1/2 top-1/2 z-20 hidden h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl md:flex">
+          <div className="glass-panel absolute left-1/2 top-1/2 z-20 hidden h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl text-foreground md:flex">
             <Logo className="h-6 w-6" />
           </div>
         </div>

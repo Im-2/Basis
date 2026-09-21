@@ -3,25 +3,26 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-export type DashboardTheme = "light" | "dark";
+export type AppTheme = "light" | "dark";
 
-const STORAGE_KEY = "basis-dashboard-theme";
+const STORAGE_KEY = "basis-theme";
 
 interface ThemeContextValue {
-  theme: DashboardTheme;
+  theme: AppTheme;
   toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 /**
- * Dashboard-only light/dark toggle, persisted to localStorage. Defaults to
- * "light" to match the current SSR markup (avoids a hydration mismatch);
- * a stored preference is applied a beat after mount, same tradeoff every
- * localStorage-backed theme toggle makes.
+ * App-wide light/dark toggle (landing page + dashboard share one theme),
+ * persisted to localStorage. Defaults to "light" to match the current SSR
+ * markup (avoids a hydration mismatch); a stored preference is applied a
+ * beat after mount, same tradeoff every localStorage-backed theme toggle
+ * makes.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<DashboardTheme>("light");
+  const [theme, setTheme] = useState<AppTheme>("light");
   // Guards the persist-effect below from writing the default "light" value
   // back over a real stored preference before the read-effect has run --
   // without this, mount order is: read schedules a microtask, write-effect
@@ -50,7 +51,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setTheme((t) => (t === "light" ? "dark" : "light"));
   }, []);
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {/* display:contents keeps this out of body's layout while still scoping
+          the --color-* overrides (below, in globals.css) to every descendant. */}
+      <div className={`contents ${theme === "light" ? "light-theme" : ""}`}>{children}</div>
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme(): ThemeContextValue {
