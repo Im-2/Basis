@@ -6,13 +6,13 @@ import { ArrowDown } from "lucide-react";
 import { VersionedTransaction } from "@solana/web3.js";
 import { spreadColorClass } from "@/lib/spread-color";
 import {
-  USDC_DECIMALS,
-  USDC_MINT,
+  INPUT_TOKENS,
   decodeBase64,
   encodeBase64,
   executeOrder,
   getMintDecimals,
   getOrder,
+  type InputToken,
   type OrderResponse,
 } from "@/lib/jupiter-order";
 import { useWallet, type WalletState } from "../use-wallet";
@@ -22,6 +22,12 @@ import type { SpreadRecord } from "@/lib/dashboard-api-types";
 const QUOTE_DEBOUNCE_MS = 500;
 
 type TxState = "idle" | "awaiting-signature" | "submitting" | "confirmed" | "failed";
+
+function inputBalanceFor(wallet: WalletState, symbol: InputToken["symbol"]): number {
+  if (symbol === "SOL") return wallet.solBalance;
+  if (symbol === "USDC") return wallet.usdcBalance;
+  return wallet.usdtBalance;
+}
 
 function TradePageInner() {
   const searchParams = useSearchParams();
@@ -33,6 +39,10 @@ function TradePageInner() {
   const defaultSymbol = spreads.find((s) => s.symbol === requestedToken)?.symbol ?? spreads[0]?.symbol ?? null;
   const selectedSymbol = selectedSymbolOverride ?? defaultSymbol;
   const selectedToken = spreads.find((s) => s.symbol === selectedSymbol) ?? null;
+
+  // Defaults to SOL, since that's what most wallets hold by default. Lifted up (rather than
+  // local to SwapPanel) so it can be part of SwapPanel's remount key below.
+  const [inputSymbol, setInputSymbol] = useState<InputToken["symbol"]>("SOL");
 
   return (
     <div className="space-y-6">
@@ -65,8 +75,14 @@ function TradePageInner() {
       ) : (
         <>
           <SpreadInsight token={selectedToken} />
-          {/* Keyed by symbol so switching tokens remounts the panel with fresh state, instead of an effect resetting it. */}
-          <SwapPanel key={selectedToken.symbol} token={selectedToken} wallet={wallet} />
+          {/* Keyed by output token + input token so switching either remounts the panel with fresh state, instead of an effect resetting it. */}
+          <SwapPanel
+            key={`${selectedToken.symbol}:${inputSymbol}`}
+            token={selectedToken}
+            wallet={wallet}
+            inputSymbol={inputSymbol}
+            onInputSymbolChange={setInputSymbol}
+          />
         </>
       )}
     </div>
@@ -110,8 +126,21 @@ function SpreadInsight({ token }: { token: SpreadRecord }) {
   );
 }
 
-function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState }) {
-  const [amountUsdc, setAmountUsdc] = useState("");
+function SwapPanel({
+  token,
+  wallet,
+  inputSymbol,
+  onInputSymbolChange,
+}: {
+  token: SpreadRecord;
+  wallet: WalletState;
+  inputSymbol: InputToken["symbol"];
+  onInputSymbolChange: (symbol: InputToken["symbol"]) => void;
+}) {
+  const inputToken = INPUT_TOKENS.find((t) => t.symbol === inputSymbol) ?? INPUT_TOKENS[0];
+  const inputBalance = inputBalanceFor(wallet, inputSymbol);
+
+  const [amountIn, setAmountIn] = useState("");
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
@@ -132,9 +161,9 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
     };
   }, [token.mint]);
 
-  const amountNum = Number(amountUsdc);
-  const hasValidAmount = amountUsdc.trim() !== "" && Number.isFinite(amountNum) && amountNum > 0;
-  const insufficientBalanceLocally = wallet.connected && hasValidAmount && amountNum > wallet.usdcBalance;
+  const amountNum = Number(amountIn);
+  const hasValidAmount = amountIn.trim() !== "" && Number.isFinite(amountNum) && amountNum > 0;
+  const insufficientBalanceLocally = wallet.connected && hasValidAmount && amountNum > inputBalance;
 
   useEffect(() => {
     if (!hasValidAmount) return;
@@ -143,9 +172,9 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
     const handle = setTimeout(async () => {
       setQuoteLoading(true);
       try {
-        const rawAmount = Math.round(amountNum * 10 ** USDC_DECIMALS).toString();
+        const rawAmount = Math.round(amountNum * 10 ** inputToken.decimals).toString();
         const result = await getOrder({
-          inputMint: USDC_MINT,
+          inputMint: inputToken.mint,
           outputMint: token.mint,
           amount: rawAmount,
           taker: wallet.connected && wallet.address ? wallet.address : undefined,
@@ -166,9 +195,9 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
       cancelled = true;
       clearTimeout(handle);
     };
-    // amountNum is derived from amountUsdc; depending on the string avoids redundant re-runs.
+    // amountNum is derived from amountIn; depending on the string avoids redundant re-runs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amountUsdc, token.mint, wallet.connected, wallet.address, hasValidAmount]);
+  }, [amountIn, inputToken.mint, inputToken.decimals, token.mint, wallet.connected, wallet.address, hasValidAmount]);
 
   // Ignore a stale quote once the input becomes invalid, without resetting state synchronously in an effect.
   const activeOrder = hasValidAmount ? order : null;
@@ -217,7 +246,7 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
   else if (txState === "submitting") actionLabel = "Submitting…";
   else if (quoteLoading) actionLabel = "Pricing this trade…";
   else if (!hasValidAmount) actionLabel = "Enter an amount";
-  else if (insufficientBalanceLocally) actionLabel = "Insufficient USDC balance";
+  else if (insufficientBalanceLocally) actionLabel = `Insufficient ${inputSymbol} balance`;
   else if (serverError) actionLabel = "Unable to trade";
 
   const positive = token.spreadPct >= 0;
@@ -226,7 +255,7 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
   return (
     <div className="glass-panel rounded-2xl p-6">
       <p className="text-sm font-medium text-white">Buy {token.symbol}</p>
-      <p className="mt-1 text-xs text-muted">Spend USDC to act on the spread above.</p>
+      <p className="mt-1 text-xs text-muted">Spend {inputSymbol} to act on the spread above.</p>
 
       <div className="mt-5 space-y-3">
         <div>
@@ -237,14 +266,28 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
               min="0"
               step="any"
               inputMode="decimal"
-              value={amountUsdc}
-              onChange={(e) => setAmountUsdc(e.target.value)}
+              value={amountIn}
+              onChange={(e) => setAmountIn(e.target.value)}
               placeholder="0.00"
               className="w-full bg-transparent text-lg text-white placeholder:text-white/30 focus:outline-none"
             />
-            <span className="flex-shrink-0 text-sm text-muted">USDC</span>
+            <select
+              value={inputSymbol}
+              onChange={(e) => onInputSymbolChange(e.target.value as InputToken["symbol"])}
+              className="flex-shrink-0 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm text-white focus:outline-none"
+            >
+              {INPUT_TOKENS.map((t) => (
+                <option key={t.symbol} value={t.symbol} className="bg-[#151516] text-white">
+                  {t.symbol}
+                </option>
+              ))}
+            </select>
           </div>
-          {wallet.connected && <p className="mt-1.5 text-xs text-muted">Balance: ${wallet.usdcBalance.toFixed(2)} USDC</p>}
+          {wallet.connected && (
+            <p className="mt-1.5 text-xs text-muted">
+              Balance: {inputBalance.toFixed(inputSymbol === "SOL" ? 4 : 2)} {inputSymbol}
+            </p>
+          )}
         </div>
 
         <div className="flex justify-center text-white/30">
@@ -279,7 +322,8 @@ function SwapPanel({ token, wallet }: { token: SpreadRecord; wallet: WalletState
         {serverError && <p className="text-xs text-red-500">{activeOrder?.errorMessage ?? "This trade couldn't be built."}</p>}
         {insufficientBalanceLocally && !serverError && (
           <p className="text-xs text-red-500">
-            You have ${wallet.usdcBalance.toFixed(2)} USDC, which isn&apos;t enough to cover this trade.
+            You have {inputBalance.toFixed(inputSymbol === "SOL" ? 4 : 2)} {inputSymbol}, which isn&apos;t enough to cover
+            this trade.
           </p>
         )}
         {wallet.connected && !wallet.signTransaction && (

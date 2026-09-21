@@ -10,8 +10,20 @@
 const JUPITER_SWAP_BASE = "https://api.jup.ag/swap/v2";
 const JUPITER_TOKEN_SEARCH_BASE = "https://lite-api.jup.ag/tokens/v2/search";
 
-export const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-export const USDC_DECIMALS = 6;
+export interface InputToken {
+  symbol: "SOL" | "USDC" | "USDT";
+  mint: string;
+  decimals: number;
+}
+
+// Mints verified live against Jupiter's token search API and CoinGecko's Solana
+// platform mapping (not assumed from memory -- Jupiter's search also surfaces
+// impersonator tokens reusing the "USDT"/"USDC" symbol at other mints).
+export const INPUT_TOKENS: InputToken[] = [
+  { symbol: "SOL", mint: "So11111111111111111111111111111111111111112", decimals: 9 },
+  { symbol: "USDC", mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", decimals: 6 },
+  { symbol: "USDT", mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", decimals: 6 },
+];
 
 export interface OrderResponse {
   mode: string;

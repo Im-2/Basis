@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useConnection, useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import type { Connection } from "@solana/web3.js";
 import type { WalletContextState } from "@solana/wallet-adapter-react";
 
 export interface WalletState {
@@ -13,17 +14,24 @@ export interface WalletState {
   shortAddress: string;
   solBalance: number;
   usdcBalance: number;
+  usdtBalance: number;
   connect: () => void;
   disconnect: () => void;
   /** Signs (does not send) a transaction with the connected wallet. Undefined if the wallet doesn't support it. */
   signTransaction: WalletContextState["signTransaction"];
-  /** Re-fetches SOL/USDC balances immediately, e.g. right after a swap. */
+  /** Re-fetches SOL/USDC/USDT balances immediately, e.g. right after a swap. */
   refreshBalances: () => void;
 }
 
-// Circle's official mainnet USDC mint.
+// Verified against Jupiter's token search API and CoinGecko's Solana platform mapping.
 const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+const USDT_MINT = new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB");
 const BALANCE_REFRESH_MS = 30_000;
+
+async function getSplBalance(connection: Connection, owner: PublicKey, mint: PublicKey): Promise<number> {
+  const accounts = await connection.getParsedTokenAccountsByOwner(owner, { mint });
+  return accounts.value.reduce((sum, { account }) => sum + (account.data.parsed?.info?.tokenAmount?.uiAmount ?? 0), 0);
+}
 
 const WalletBalanceContext = createContext<WalletState | null>(null);
 
@@ -43,6 +51,7 @@ export function WalletBalanceProvider({ children }: { children: ReactNode }) {
 
   const [solBalance, setSolBalance] = useState(0);
   const [usdcBalance, setUsdcBalance] = useState(0);
+  const [usdtBalance, setUsdtBalance] = useState(0);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
@@ -60,15 +69,19 @@ export function WalletBalanceProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const accounts = await connection.getParsedTokenAccountsByOwner(publicKey!, { mint: USDC_MINT });
+        const total = await getSplBalance(connection, publicKey!, USDC_MINT);
         if (cancelled) return;
-        const total = accounts.value.reduce(
-          (sum, { account }) => sum + (account.data.parsed?.info?.tokenAmount?.uiAmount ?? 0),
-          0,
-        );
         setUsdcBalance(total);
       } catch (err) {
         console.error("Failed to fetch USDC balance:", err);
+      }
+
+      try {
+        const total = await getSplBalance(connection, publicKey!, USDT_MINT);
+        if (cancelled) return;
+        setUsdtBalance(total);
+      } catch (err) {
+        console.error("Failed to fetch USDT balance:", err);
       }
     }
 
@@ -93,12 +106,13 @@ export function WalletBalanceProvider({ children }: { children: ReactNode }) {
       shortAddress: address ? `${address.slice(0, 4)}…${address.slice(-4)}` : "",
       solBalance: connected ? solBalance : 0,
       usdcBalance: connected ? usdcBalance : 0,
+      usdtBalance: connected ? usdtBalance : 0,
       connect,
       disconnect,
       signTransaction,
       refreshBalances,
     }),
-    [connected, address, solBalance, usdcBalance, connect, disconnect, signTransaction, refreshBalances],
+    [connected, address, solBalance, usdcBalance, usdtBalance, connect, disconnect, signTransaction, refreshBalances],
   );
 
   return <WalletBalanceContext.Provider value={value}>{children}</WalletBalanceContext.Provider>;
