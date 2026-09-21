@@ -33,7 +33,7 @@ export function HowItWorks() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={viewport}
             transition={cardTransition(0)}
-            className="glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px]"
+            className={`glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px] ${invertedTheme}`}
           >
             <h3 className="text-lg font-semibold text-white">Track Live Prices</h3>
             <p className="mt-2 text-sm text-muted">
@@ -50,7 +50,7 @@ export function HowItWorks() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={viewport}
             transition={cardTransition(0.1)}
-            className="glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px]"
+            className={`glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px] ${invertedTheme}`}
           >
             <h3 className="text-lg font-semibold text-white">Spot the Spread</h3>
             <p className="mt-2 text-sm text-muted">
@@ -80,7 +80,7 @@ export function HowItWorks() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={viewport}
             transition={cardTransition(0.2)}
-            className="glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px]"
+            className={`glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px] ${invertedTheme}`}
           >
             <h3 className="text-lg font-semibold text-white">Trade the Gap</h3>
             <p className="mt-2 text-sm text-muted">
