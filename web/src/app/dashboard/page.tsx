@@ -26,7 +26,7 @@ export default function DashboardOverviewPage() {
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
           {fetchError
             ? fetchError
-            : `Live data temporarily unavailable${data?.error ? ` (${data.error})` : ""} — showing the last cached snapshot.`}
+            : `Live data temporarily unavailable${data?.error ? ` (${data.error})` : ""}. Showing the last cached snapshot.`}
         </div>
       )}
 

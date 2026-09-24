@@ -19,7 +19,7 @@ export function Hero() {
 
         <p className="mt-5 max-w-2xl text-lg text-muted">
           Basis tracks the live spread between Tessera&apos;s fair value and real DEX prices for T-OpenAI, T-Kalshi,
-          and T-SpaceX — so you always know when you&apos;re getting a deal.
+          and T-SpaceX. Always know when you&apos;re getting a deal.
         </p>
 
         <div className="mt-7 flex flex-col items-center gap-4 sm:flex-row">

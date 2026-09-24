@@ -25,6 +25,12 @@
   --color-panel-sunken: #0a0a0b;
 }
 
+/* For the landing page's section links. <html data-scroll-behavior="smooth">
+   (app/layout.tsx) makes Next.js skip it during route changes. */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
@@ -54,10 +60,6 @@ body {
   background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 40%);
 }
 
-.light-theme .hero-glow {
-  background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.05), transparent 40%);
-}
-
 /* Painted on a pseudo-element faded in from the top: anchored at the
    section's top-left corner, the glow is strongest exactly on the section's
    top edge, which otherwise shows as a hard seam against the section above. */
@@ -71,22 +73,10 @@ body {
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 35%);
 }
 
-.light-theme .cta-glow::before {
-  background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.035), transparent 40%);
-}
-
 /* Faint dotted-grid texture behind the whole landing page (see app/page.tsx),
    faded out toward the left/right edges. */
-:root {
-  --landing-dot: rgba(255, 255, 255, 0.06);
-}
-
-.light-theme {
-  --landing-dot: rgba(0, 0, 0, 0.08);
-}
-
 .landing-dots {
-  background-image: radial-gradient(circle, var(--landing-dot) 1px, transparent 1.5px);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1.5px);
   background-size: 24px 24px;
   mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
@@ -102,20 +92,18 @@ body {
 }
 
 /*
- * App-wide light theme scope -- applied to a wrapper div in ThemeProvider
- * (lib/theme.tsx), so it covers both the landing page and the dashboard
- * routes (Overview, Trade, Markets, Spread History, Alerts, Wallet,
- * Settings) under one shared toggle.
+ * Light theme scope. The defaults above are dark; this flips a subtree to
+ * light. Used in two places: the dashboard's light mode (a wrapper div in
+ * ThemeProvider, lib/theme.tsx), and the landing page's preview elements
+ * (the MacBook screen and the How It Works / Watch The Gap Move /
+ * Detect-Surface-Route cards), which are always light on the always-dark
+ * landing page so they read as contrasting "screenshots".
  *
  * Overriding --color-white is the load-bearing line: every Tailwind
- * white/opacity utility used throughout the app (text-white,
- * text-white/40, border-white/10, bg-white/[0.03], hover:text-white, ...)
- * resolves through var(--color-white) internally, so flipping this one
- * token flips the whole component tree from white-on-dark to
- * near-black-on-white without editing every component's classes. This is
- * also why the landing page's decorative blurred-circle "ambient glow"
- * elements (bg-white/10 blur-[...]) need no separate light-mode CSS: they
- * ride the same token flip and come out as a faint gray blur for free.
+ * white/opacity utility (text-white, text-white/40, border-white/10,
+ * bg-white/[0.03], hover:text-white, ...) resolves through var(--color-white)
+ * internally, so flipping this one token flips the whole subtree from
+ * white-on-dark to near-black-on-white without editing every component.
  */
 .light-theme {
   --color-background: #fafafa;
@@ -157,70 +145,23 @@ body {
 }
 
 /*
- * Inverted-theme scope for landing-page "preview" elements (the hero's
- * dashboard mockup, embedded chart/list/table panels, the spread chart
- * card, the Detect/Surface/Route cards) -- these deliberately render the
- * OPPOSITE of the page's current theme so they read as a floating,
- * contrasting "framed screenshot" rather than blending into the page.
- * Applied via useInvertedThemeClass() (lib/theme.tsx), merged onto the same
- * element as .glass-panel/.preview-invert-surface (not as an ancestor).
- *
- * This mirrors the original dark @theme defaults above so it can force
- * dark back on even when nested inside a .light-theme ancestor (the whole
- * page is in light mode).
+ * The landing page's light glass cards. The usual .glass-panel tint (3-6%)
+ * assumes the page behind already matches the card's theme; these light
+ * cards sit on the dark landing page, so they need a much stronger tint
+ * (85% near-white) to read as light while staying translucent. A compound
+ * selector (not descendant) because .light-theme is merged onto the same
+ * element as .glass-panel -- which also means it can never match the
+ * dashboard's .light-theme wrapper div.
  */
-.dark-theme {
-  --color-background: #0c0c0c;
-  --color-foreground: #ffffff;
-  /* A touch lighter than the global dark muted (#989898): these panels are
-     translucent glass over a light page, so their effective background is a
-     lighter charcoal (~#373737), and #989898 drops below ~4.5:1 on it. */
-  --color-muted: #a3a3a3;
-  --color-white: #ffffff;
-
-  --color-chart-mark: rgba(255, 255, 255, 0.35);
-  --color-chart-tooltip-bg: #151516;
-  --color-chart-tooltip-border: rgba(255, 255, 255, 0.1);
-  --color-chart-label: #989898;
-  --color-chart-grid: rgba(255, 255, 255, 0.06);
-  --color-premium: #3b82f6;
-  --color-panel-sunken: #0a0a0b;
-}
-
-/*
- * Inverted glass cards. The usual .glass-panel tint (3-6%) assumes the page
- * behind already matches the card's theme; these cards sit on the OPPOSITE
- * page, so they need a much stronger tint to read as dark-on-light (or
- * light-on-dark) while staying translucent. Compound selectors (not
- * descendant) because the theme class is merged onto the same element as
- * .glass-panel, never applied as its ancestor -- which also means these can
- * never match the app-wide .light-theme wrapper div.
- *
- * The light variant mirrors the dark one (85% near-white) rather than a
- * 8-12% white tint: over the near-black page that tint comes out dark gray,
- * and the inverted card's text is dark.
- */
-.dark-theme.glass-panel {
-  background: rgba(20, 20, 20, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.35);
-}
-
 .light-theme.glass-panel {
   background: rgba(250, 250, 250, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.6);
 }
 
-/* Panels nested inside an inverted card: one step more transparent than
-   the card itself, a faint inset rather than a second solid block. No
-   backdrop-filter of their own: nested inside the card's blur, it samples a
-   transparent backdrop and turns the panel darker, not lighter. */
-.dark-theme.preview-invert-surface {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
+/* Panels nested inside those cards: a faint inset rather than a second
+   solid block. No backdrop-filter of their own: nested inside the card's
+   blur, it samples a transparent backdrop and renders wrong. */
 .light-theme.preview-invert-surface {
   background: rgba(17, 17, 17, 0.035);
   border: 1px solid rgba(17, 17, 17, 0.07);
@@ -229,10 +170,8 @@ body {
 /*
  * MacBook Air frame around the hero dashboard preview (dashboard-preview/index.tsx).
  * Sizes are in cqw (the device wrapper is a size container), so the bezel,
- * notch, hinge and base all scale together. The bezel, notch and hinge are
- * black in both themes, like the real thing; the aluminum (rim, base, thumb
- * scoop) follows the page theme -- sky-blue-gray in light mode, graphite in
- * dark.
+ * notch, hinge and base all scale together. Black bezel, notch and hinge;
+ * graphite aluminum (the landing page is always dark).
  */
 :root {
   --laptop-rim: #4a4c53;
@@ -243,17 +182,6 @@ body {
   --laptop-scoop-top: #33353a;
   --laptop-scoop-bottom: #4d4f56;
   --laptop-shadow: rgba(0, 0, 0, 0.6);
-}
-
-.light-theme {
-  --laptop-rim: #b3bfcb;
-  --laptop-base-edge: #97a5b3;
-  --laptop-base-mid: #e2e9f0;
-  --laptop-base-lip: #f4f7fa;
-  --laptop-base-under: #7f8c99;
-  --laptop-scoop-top: #f7f9fb;
-  --laptop-scoop-bottom: #cbd5df;
-  --laptop-shadow: rgba(17, 17, 17, 0.28);
 }
 
 .laptop-lid {

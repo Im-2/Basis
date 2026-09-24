@@ -70,7 +70,7 @@ export default function SettingsPage() {
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Alert Notifications" description="Placeholder controls — no push notifications wired up yet, but your preference is saved.">
+      <SettingsSection title="Alert Notifications" description="Placeholder controls. No push notifications are wired up yet, but your preference is saved.">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-white">Notify me on high-severity spreads</p>

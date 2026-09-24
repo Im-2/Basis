@@ -76,7 +76,7 @@ export function buildAlerts(spreads: SpreadRecord[], history: SpreadRecord[]): A
         titlePrefix: `${s.symbol} spread at `,
         titlePct: s.spreadPct,
         titleSuffix: "",
-        description: "Above the typical range — worth watching.",
+        description: "Above the typical range. Worth watching.",
         timestamp: s.fetchedAt,
       };
     }

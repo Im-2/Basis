@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { ThemeProvider } from "@/lib/theme";
 import "./globals.css";
 
 const geist = localFont({
@@ -11,17 +10,17 @@ const geist = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Basis — Pre-IPO Tokens, Priced Right",
+  title: "Basis: Pre-IPO Tokens, Priced Right",
   description:
     "Basis tracks the live spread between Tessera's fair value and real DEX prices for T-OpenAI, T-Kalshi, and T-SpaceX.",
 };
 
+// No theme provider here: the landing page is always dark (the CSS defaults),
+// and the dashboard layout provides its own light/dark theme.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={geist.variable}>
-      <body className="bg-background text-foreground antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+    <html lang="en" className={geist.variable} data-scroll-behavior="smooth">
+      <body className="bg-background text-foreground antialiased">{children}</body>
     </html>
   );
 }

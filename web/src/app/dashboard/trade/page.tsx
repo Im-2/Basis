@@ -150,7 +150,7 @@ function SpreadInsight({ token }: { token: SpreadRecord }) {
         }`}
       >
         {discount
-          ? `${token.symbol} is trading ${pct}% below its Tessera mark price — a good entry point.`
+          ? `${token.symbol} is trading ${pct}% below its Tessera mark price: a good entry point.`
           : `${token.symbol} is trading ${pct}% above its Tessera mark price.`}
       </div>
 
@@ -229,7 +229,7 @@ function TokenPriceChart({ token, history, now }: { token: SpreadRecord; history
           <SpreadHistoryChart data={points} symbol={token.symbol} heightClass="h-72" hideHeader />
         ) : (
           <div className="flex h-72 flex-col items-center justify-center rounded-xl border border-white/5 bg-white/[0.03] text-center">
-            <p className="text-sm text-white/70">Building history — check back soon.</p>
+            <p className="text-sm text-white/70">Building history. Check back soon.</p>
             <p className="mt-1 text-xs text-muted">
               {points.length === 1 ? "Only one snapshot recorded so far for this window." : "No snapshots recorded yet for this window."}
             </p>

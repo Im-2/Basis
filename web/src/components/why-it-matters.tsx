@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { ArrowRightLeft, Radar, Split, type LucideIcon } from "lucide-react";
-import { useInvertedThemeClass } from "@/lib/theme";
 
 const viewport = { once: false, amount: 0.3 };
 const textTransition = (delay: number) => ({ duration: 0.5, ease: "easeOut" as const, delay });
@@ -26,22 +25,20 @@ const steps: Step[] = [
   {
     icon: Split,
     title: "Surface",
-    description: "The moment a real spread appears, it's shown clearly — no digging through charts or spreadsheets.",
+    description: "The moment a real spread appears, it's shown clearly. No digging through charts or spreadsheets.",
     link: "How it works →",
     align: "left",
   },
   {
     icon: ArrowRightLeft,
     title: "Route",
-    description: "One click routes that opportunity straight into a trade — turning insight into real demand for T-Tokens.",
+    description: "One click routes that opportunity straight into a trade, turning insight into real demand for T-Tokens.",
     link: "Start trading →",
     align: "right",
   },
 ];
 
 export function WhyItMatters() {
-  const invertedTheme = useInvertedThemeClass();
-
   return (
     <section className="relative overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 px-6 lg:grid-cols-2 lg:px-8">
@@ -76,7 +73,7 @@ export function WhyItMatters() {
             className="mt-6 max-w-xl text-lg text-muted"
           >
             Basis doesn&apos;t just show you numbers. Every spread we surface is a nudge toward real trading activity
-            on T-OpenAI, T-Kalshi, and T-SpaceX — turning insight straight into on-chain volume.
+            on T-OpenAI, T-Kalshi, and T-SpaceX, turning insight straight into on-chain volume.
           </motion.p>
         </div>
 
@@ -97,7 +94,7 @@ export function WhyItMatters() {
                   viewport={viewport}
                   transition={textTransition(i * 0.1)}
                   style={{ zIndex: 10 + i * 10 }}
-                  className={`glass-panel relative w-full rounded-2xl p-6 lg:w-[82%] ${invertedTheme} ${
+                  className={`glass-panel light-theme relative w-full rounded-2xl p-6 lg:w-[82%] ${
                     i > 0 ? "mt-4 lg:-mt-10" : ""
                   } ${step.align === "right" ? "lg:ml-auto" : "lg:mr-auto"}`}
                 >

@@ -2,7 +2,7 @@
 
 Fair-value signals and one-click execution for Tessera's pre-IPO tokens on Solana.
 
-**[Live app](https://basis-spread.vercel.app)** · [Demo video — link coming] · [Stocklana hackathon](https://hackathons.solana.com/hackathons/stocklana)
+**[Live app](https://basis-spread.vercel.app)** · Demo video (link coming) · [Stocklana hackathon](https://hackathons.solana.com/hackathons/stocklana)
 
 <!-- Hero screenshot: add the image at docs/screenshots/hero.png -->
 ![Basis dashboard](docs/screenshots/hero.png)
@@ -23,7 +23,7 @@ Tessera's T-Tokens (T-OpenAI, T-Kalshi, T-SpaceX) trade 24/7 on Solana DEXs, but
 
 Basis doesn't build a new venue or bonding curve. It's a demand layer on top of the liquidity T-Tokens already trade on: every trade through Basis is real on-chain volume into T-Token pools, and surfacing mispricings gives traders a reason to push prices back toward fair value.
 
-> Tessera doesn't operate its own trading venue — all T-Token trades settle on Meteora/Jupiter. Basis is the missing layer: the fair-value signal Tessera's own dashboard doesn't provide, paired with one-click execution on the same infrastructure Tessera itself routes through.
+> Tessera doesn't operate its own trading venue: all T-Token trades settle on Meteora/Jupiter. Basis is the missing layer: the fair-value signal Tessera's own dashboard doesn't provide, paired with one-click execution on the same infrastructure Tessera itself routes through.
 
 **Isn't this just a Jupiter wrapper?** Jupiter is the execution plumbing. It's how T-Tokens trade at all, so any honest trading interface for them uses it. What Basis adds is everything around the swap: the fair-value comparison, its history, the alerts, and framing each trade around whether you're paying a premium or getting a discount.
 
@@ -41,7 +41,7 @@ T-Tokens are SPL Token-2022 mints on Solana mainnet (checked on-chain for all th
 - **Alerts:** every token's current alert status, filterable by severity and token.
 - **Wallet:** connected address (copyable), SOL / USDC / USDT balances, and T-Token holdings read from the wallet's token accounts.
 - **Settings:** theme, default token and timeframe (used by Spread History), and alert-notification preferences (saved locally; nothing is sent yet).
-- **Light / dark mode** across the app, and **mobile-responsive** layouts.
+- **Light / dark mode** in the dashboard (light by default, saved per browser; the landing page is always dark), and **mobile-responsive** layouts.
 - **Wallets:** Phantom and Solflare adapters; other Wallet Standard wallets are detected automatically.
 
 ## How it works
@@ -185,4 +185,4 @@ Brand marks (OpenAI, SpaceX, Kalshi, SOL, USDC, USDT, X, GitHub) belong to their
 
 ## Disclaimer
 
-Not financial advice. T-Tokens represent loan participation rights, not equity. Tessera is unavailable in certain jurisdictions — see Tessera's terms.
+Not financial advice. T-Tokens represent loan participation rights, not equity. Tessera is unavailable in certain jurisdictions. See Tessera's terms.

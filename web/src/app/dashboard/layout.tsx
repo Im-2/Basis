@@ -1,34 +1,17 @@
-"use client";
-
-import { useState } from "react";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
-import { SolanaWalletProvider } from "@/components/solana/wallet-provider";
-import { Sidebar } from "./_components/sidebar";
-import { TopBar } from "./_components/top-bar";
-import { useWallet, WalletBalanceProvider } from "./use-wallet";
+import { DASHBOARD_THEME_COOKIE, parseDashboardTheme } from "@/lib/dashboard-theme";
+import { ThemeProvider } from "@/lib/theme";
+import { DashboardShell } from "./_components/dashboard-shell";
 
-function DashboardShell({ children }: { children: ReactNode }) {
-  const wallet = useWallet();
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+// Reads the dashboard's theme cookie on the server so the first paint is
+// already in the right theme (light by default) -- no flash of the wrong one.
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  const theme = parseDashboardTheme((await cookies()).get(DASHBOARD_THEME_COOKIE)?.value);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar wallet={wallet} mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar wallet={wallet} onMenuClick={() => setMobileNavOpen(true)} />
-        <main className="flex-1 space-y-6 p-4 sm:p-6">{children}</main>
-      </div>
-    </div>
-  );
-}
-
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-  return (
-    <SolanaWalletProvider>
-      <WalletBalanceProvider>
-        <DashboardShell>{children}</DashboardShell>
-      </WalletBalanceProvider>
-    </SolanaWalletProvider>
+    <ThemeProvider initialTheme={theme}>
+      <DashboardShell>{children}</DashboardShell>
+    </ThemeProvider>
   );
 }

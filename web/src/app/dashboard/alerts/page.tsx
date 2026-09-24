@@ -38,7 +38,7 @@ export default function AlertsPage() {
       <div>
         <h1 className="text-xl font-semibold text-white">Alerts</h1>
         <p className="mt-1 text-sm text-muted">
-          Basis evaluates every tracked token against spread thresholds in real time — here&apos;s the current status
+          Basis evaluates every tracked token against spread thresholds in real time. Here&apos;s the current status
           for each.
         </p>
       </div>

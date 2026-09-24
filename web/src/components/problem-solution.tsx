@@ -9,7 +9,7 @@ const CARD_HEIGHT = "md:min-h-[440px]";
 
 export function ProblemSolution() {
   return (
-    <section id="product" className="relative overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
+    <section id="why-basis" className="relative scroll-mt-20 overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[15%] top-[20%] h-[320px] w-[320px] rounded-full bg-white/10 blur-[90px]" />
         <div className="absolute bottom-[10%] right-[15%] h-[320px] w-[320px] rounded-full bg-white/10 blur-[90px]" />
@@ -29,23 +29,21 @@ export function ProblemSolution() {
             </span>
             <p className="mt-6 leading-relaxed text-white/90">
               Tessera&apos;s pre-IPO tokens trade permissionlessly on open DEXs, 24/7. But DEX prices are driven
-              purely by whoever&apos;s trading in that moment — thin liquidity and short-term swings can push prices
+              purely by whoever&apos;s trading in that moment. Thin liquidity and short-term swings can push prices
               well away from what the underlying asset is actually worth. Most users have no easy way to tell if
               they&apos;re overpaying or catching a real opportunity.
             </p>
             <ul className="mt-5 space-y-2 text-sm text-white/60">
-              <li className="flex gap-2">
-                <span className="text-white/30">—</span>
-                No visibility into fair value vs. live trading price
-              </li>
-              <li className="flex gap-2">
-                <span className="text-white/30">—</span>
-                Spreads can be wide and go unnoticed
-              </li>
-              <li className="flex gap-2">
-                <span className="text-white/30">—</span>
-                No fast way to act once a mispricing is spotted
-              </li>
+              {[
+                "No visibility into fair value vs. live trading price",
+                "Spreads can be wide and go unnoticed",
+                "No fast way to act once a mispricing is spotted",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-2.5">
+                  <span className="h-1 w-1 flex-shrink-0 rounded-full bg-white/40" />
+                  {item}
+                </li>
+              ))}
             </ul>
           </motion.div>
 
@@ -61,11 +59,11 @@ export function ProblemSolution() {
             </span>
             <p className="mt-6 leading-relaxed text-white/90">
               Basis continuously compares Tessera&apos;s own reference mark price against the live DEX price for
-              T-OpenAI, T-Kalshi, and T-SpaceX — surfacing the real-time spread as a clear, actionable signal.
+              T-OpenAI, T-Kalshi, and T-SpaceX, and surfaces the real-time spread as a clear, actionable signal.
             </p>
             <p className="mt-4 leading-relaxed text-white/90">
               See exactly when a token is trading above or below fair value, track how that gap moves over time, and
-              trade directly the moment an opportunity shows up — all in one place.
+              trade directly the moment an opportunity shows up. All in one place.
             </p>
           </motion.div>
 

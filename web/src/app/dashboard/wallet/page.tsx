@@ -186,8 +186,8 @@ export default function WalletPage() {
             <History className="h-6 w-6 text-white/40" />
             <p className="mt-3 text-sm font-medium text-white">Transaction History</p>
             <p className="mt-1 max-w-sm text-xs text-muted">
-              Basis doesn&apos;t yet store a record of swaps you&apos;ve executed — this is coming soon. In the meantime, your
-              trade confirmations link out to Solscan.
+              Basis doesn&apos;t yet store a record of swaps you&apos;ve executed. That&apos;s coming soon, and in the
+              meantime your trade confirmations link out to Solscan.
             </p>
           </div>
         </>

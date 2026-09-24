@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { spreadStats, tokenSpreadHistories } from "@/lib/dashboard-data";
 import { spreadColorClass } from "@/lib/spread-color";
-import { useInvertedThemeClass } from "@/lib/theme";
 import { SpreadHistoryChart } from "./dashboard-preview/spread-history-chart";
 
 const viewport = { once: false, amount: 0.3 };
@@ -13,13 +12,12 @@ const timeframes = ["6H", "24H", "7D"] as const;
 export function SpreadChartPreview() {
   const [selected, setSelected] = useState(spreadStats[0].symbol);
   const [timeframe, setTimeframe] = useState<(typeof timeframes)[number]>("6H");
-  const invertedTheme = useInvertedThemeClass();
 
   const activeStat = spreadStats.find((s) => s.symbol === selected) ?? spreadStats[0];
   const history = tokenSpreadHistories[selected];
 
   return (
-    <section className="relative overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
+    <section id="live-data" className="relative scroll-mt-20 overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="relative mx-auto max-w-5xl px-6 lg:px-8">
         <div className="flex flex-col items-center text-center">
           <span className="inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/70 backdrop-blur">
@@ -29,7 +27,7 @@ export function SpreadChartPreview() {
             Watch The Gap Move.
           </h2>
           <p className="mt-5 max-w-2xl text-lg text-muted">
-            Spreads don&apos;t stay still. Track how {selected}&apos;s premium has moved over time — and catch it
+            Spreads don&apos;t stay still. Track how {selected}&apos;s premium has moved over time, and catch it
             before it closes.
           </p>
         </div>
@@ -39,7 +37,7 @@ export function SpreadChartPreview() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className={`glass-panel mt-12 rounded-2xl p-6 sm:p-8 ${invertedTheme}`}
+          className="glass-panel light-theme mt-12 rounded-2xl p-6 sm:p-8"
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap gap-2">

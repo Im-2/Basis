@@ -1,7 +1,4 @@
-"use client";
-
 import { heroStats, priceAlerts, spreadHistory, spreadHistorySymbol } from "@/lib/dashboard-data";
-import { useInvertedThemeClass } from "@/lib/theme";
 import { PriceAlerts } from "./price-alerts";
 import { Sidebar } from "./sidebar";
 import { SpreadHistoryChart } from "./spread-history-chart";
@@ -14,16 +11,12 @@ import { TopBar } from "./top-bar";
  * scales proportionally; the screen contents are the real components.
  */
 export function DashboardPreview() {
-  const invertedTheme = useInvertedThemeClass();
-
   return (
     <div className="@container relative">
       {/* Lid: thin black bezel inside an aluminum rim. */}
       <div className="laptop-lid relative mx-auto w-[86cqw] rounded-t-[2.2cqw] rounded-b-[0.3cqw] p-[1cqw]">
-        {/* Screen: always the opposite of the page theme. */}
-        <div
-          className={`relative aspect-[1.55] overflow-hidden rounded-t-[0.9cqw] rounded-b-[0.2cqw] bg-background ${invertedTheme}`}
-        >
+        {/* Screen: light, contrasting with the always-dark landing page. */}
+        <div className="light-theme relative aspect-[1.55] overflow-hidden rounded-t-[0.9cqw] rounded-b-[0.2cqw] bg-background">
           {/* Starts a menu-bar-height band below the top, so the notch never covers the dashboard's top bar. */}
           <div className="absolute inset-x-0 bottom-0 top-[1.5cqw] overflow-hidden">
             <div className="laptop-screen-content flex">

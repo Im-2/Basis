@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { spreadHistory, spreadHistorySymbol, spreadStats } from "@/lib/dashboard-data";
 import { spreadColorClass } from "@/lib/spread-color";
-import { useInvertedThemeClass } from "@/lib/theme";
 import { SpreadHistoryChart } from "./dashboard-preview/spread-history-chart";
 
 const viewport = { once: false, amount: 0.3 };
@@ -13,10 +12,8 @@ const signalRows = [...spreadStats].sort((a, b) => b.spreadPct - a.spreadPct);
 const tradeRows = spreadStats.map((s) => ({ ...s, action: "Buy" }));
 
 export function HowItWorks() {
-  const invertedTheme = useInvertedThemeClass();
-
   return (
-    <section id="how-it-works" className="relative overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
+    <section id="how-it-works" className="relative scroll-mt-20 overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
         <div className="flex flex-col items-center text-center">
           <span className="inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/70 backdrop-blur">
@@ -33,14 +30,14 @@ export function HowItWorks() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={viewport}
             transition={cardTransition(0)}
-            className={`glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px] ${invertedTheme}`}
+            className="glass-panel light-theme flex flex-col rounded-2xl p-6 md:min-h-[420px]"
           >
             <h3 className="text-lg font-semibold text-white">Track Live Prices</h3>
             <p className="mt-2 text-sm text-muted">
               We pull Tessera&apos;s mark price and the live DEX price every 30 seconds for T-OpenAI, T-Kalshi, and
               T-SpaceX.
             </p>
-            <div className={`preview-invert-surface mt-6 flex-1 rounded-xl ${invertedTheme}`}>
+            <div className="preview-invert-surface light-theme mt-6 flex-1 rounded-xl">
               <SpreadHistoryChart data={spreadHistory} symbol={spreadHistorySymbol} />
             </div>
           </motion.div>
@@ -50,7 +47,7 @@ export function HowItWorks() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={viewport}
             transition={cardTransition(0.1)}
-            className={`glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px] ${invertedTheme}`}
+            className="glass-panel light-theme flex flex-col rounded-2xl p-6 md:min-h-[420px]"
           >
             <h3 className="text-lg font-semibold text-white">Spot the Spread</h3>
             <p className="mt-2 text-sm text-muted">
@@ -58,7 +55,7 @@ export function HowItWorks() {
               signal.
             </p>
             <div className="mt-6 flex flex-1 flex-col justify-center">
-              <div className={`preview-invert-surface rounded-xl p-5 ${invertedTheme}`}>
+              <div className="preview-invert-surface light-theme rounded-xl p-5">
                 <p className="text-sm font-medium text-white">Live Spread Signals</p>
                 <div className="mt-4 space-y-4">
                   {signalRows.map((row) => (
@@ -80,15 +77,15 @@ export function HowItWorks() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={viewport}
             transition={cardTransition(0.2)}
-            className={`glass-panel flex flex-col rounded-2xl p-6 md:min-h-[420px] ${invertedTheme}`}
+            className="glass-panel light-theme flex flex-col rounded-2xl p-6 md:min-h-[420px]"
           >
             <h3 className="text-lg font-semibold text-white">Trade the Gap</h3>
             <p className="mt-2 text-sm text-muted">
-              See a mispricing you like? Swap directly from the dashboard the moment you spot it — no need to leave
-              the page.
+              See a mispricing you like? Swap directly from the dashboard the moment you spot it, without leaving the
+              page.
             </p>
             <div className="mt-6 flex flex-1 flex-col justify-center">
-              <div className={`preview-invert-surface rounded-xl p-5 ${invertedTheme}`}>
+              <div className="preview-invert-surface light-theme rounded-xl p-5">
                 <div className="grid grid-cols-3 gap-2 text-xs uppercase tracking-wide text-muted">
                   <span>Token</span>
                   <span>Spread</span>

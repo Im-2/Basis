@@ -269,7 +269,7 @@ export function CandlestickModal({
                 </>
               ) : (
                 <>
-                  <p className="text-sm text-white/70">Building candle history — check back soon.</p>
+                  <p className="text-sm text-white/70">Building candle history. Check back soon.</p>
                   <p className="mt-1 text-xs text-muted">No snapshots recorded yet for this token.</p>
                 </>
               )}

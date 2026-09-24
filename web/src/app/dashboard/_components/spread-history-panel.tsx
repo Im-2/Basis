@@ -97,7 +97,7 @@ export function SpreadHistoryPanel({
           <SpreadHistoryChart data={points} symbol={selected} heightClass="h-64" hideHeader />
         ) : (
           <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-white/5 bg-white/[0.03] text-center">
-            <p className="text-sm text-white/70">Building history — check back soon.</p>
+            <p className="text-sm text-white/70">Building history. Check back soon.</p>
             <p className="mt-1 text-xs text-muted">
               {points.length === 1
                 ? "Only one snapshot recorded so far for this window."

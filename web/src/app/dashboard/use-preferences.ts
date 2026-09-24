@@ -37,10 +37,9 @@ function isPreferences(value: unknown): value is Preferences {
 
 /**
  * Dashboard-wide preferences (default token/timeframe, alert threshold),
- * persisted to localStorage. Same hydration-race guard as the theme hook
- * (lib/theme.tsx): defaults render on the server/first paint, the real
- * stored value applies a beat after mount, and a `hydrated` ref stops the
- * persist-effect from clobbering storage with that default in between.
+ * persisted to localStorage. Defaults render on the server/first paint, the
+ * real stored value applies a beat after mount, and a `hydrated` ref stops
+ * the persist-effect from clobbering storage with that default in between.
  */
 export function usePreferences() {
   const [prefs, setPrefs] = useState<Preferences>(DEFAULTS);

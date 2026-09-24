@@ -6,10 +6,7 @@ import { useDashboardData } from "@/app/dashboard/use-dashboard-data";
 import { Logo } from "./logo";
 
 const REPO_URL = "https://github.com/Im-2/Basis";
-const SITE_URL = "https://basis-spread.vercel.app";
-const SHARE_ON_X_URL = `https://x.com/intent/post?text=${encodeURIComponent(
-  "Basis: live fair-value spreads for Tessera's pre-IPO tokens",
-)}&url=${encodeURIComponent(SITE_URL)}`;
+const X_URL = "https://x.com/nuelcrypt";
 
 interface FooterLink {
   label: string;
@@ -133,8 +130,8 @@ export function SiteFooter() {
         </Link>
       </div>
 
-      {/* Footer panel. dark-theme pins the white-based palette so text-white is white in both page themes. */}
-      <div className="footer-glow dark-theme relative mt-4 pt-44 sm:pt-56">
+      {/* Footer panel on the blue bloom. */}
+      <div className="footer-glow relative mt-4 pt-44 sm:pt-56">
         <div className="relative mx-auto grid max-w-6xl grid-cols-2 gap-x-8 gap-y-10 px-6 md:grid-cols-12 lg:px-8">
           <div className="col-span-2 md:col-span-4">
             <Link href="/" className="inline-flex items-center gap-2.5">
@@ -146,10 +143,10 @@ export function SiteFooter() {
             <p className="mt-3 text-base text-white/80">Fair value for pre-IPO tokens.</p>
             <div className="mt-6 flex gap-3">
               <a
-                href={SHARE_ON_X_URL}
+                href={X_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Share Basis on X"
+                aria-label="@nuelcrypt on X"
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 text-white transition hover:bg-white/10"
               >
                 <XIcon className="h-4 w-4" />
