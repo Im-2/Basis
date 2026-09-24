@@ -48,20 +48,39 @@ body {
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
 }
 
+/* No solid base color on these glows: the landing page's <main> paints the
+   background, and an opaque base here would cover the .landing-dots layer. */
 .hero-glow {
-  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 40%), var(--color-background);
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 40%);
 }
 
 .light-theme .hero-glow {
-  background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.05), transparent 40%), var(--color-background);
+  background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.05), transparent 40%);
 }
 
 .cta-glow {
-  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 40%), var(--color-background);
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 40%);
 }
 
 .light-theme .cta-glow {
-  background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.035), transparent 40%), var(--color-background);
+  background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.035), transparent 40%);
+}
+
+/* Faint dotted-grid texture behind the whole landing page (see app/page.tsx),
+   faded out toward the left/right edges. */
+:root {
+  --landing-dot: rgba(255, 255, 255, 0.06);
+}
+
+.light-theme {
+  --landing-dot: rgba(0, 0, 0, 0.08);
+}
+
+.landing-dots {
+  background-image: radial-gradient(circle, var(--landing-dot) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
 
 /* Shared glassmorphism treatment -- used by the dashboard preview panel and the

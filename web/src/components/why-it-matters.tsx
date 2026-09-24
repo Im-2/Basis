@@ -43,7 +43,7 @@ export function WhyItMatters() {
   const invertedTheme = useInvertedThemeClass();
 
   return (
-    <section className="relative overflow-hidden bg-background pb-24 pt-12 sm:pb-32 sm:pt-16">
+    <section className="relative overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 px-6 lg:grid-cols-2 lg:px-8">
         <div className="flex flex-col">
           <motion.span

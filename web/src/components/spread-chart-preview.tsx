@@ -19,7 +19,7 @@ export function SpreadChartPreview() {
   const history = tokenSpreadHistories[selected];
 
   return (
-    <section className="relative overflow-hidden bg-background pb-24 pt-12 sm:pb-32 sm:pt-16">
+    <section className="relative overflow-hidden pb-24 pt-12 sm:pb-32 sm:pt-16">
       <div className="relative mx-auto max-w-5xl px-6 lg:px-8">
         <div className="flex flex-col items-center text-center">
           <span className="inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/70 backdrop-blur">

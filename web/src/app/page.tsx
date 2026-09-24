@@ -8,7 +8,9 @@ import { WhyItMatters } from "@/components/why-it-matters";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="relative isolate min-h-screen bg-background">
+      {/* -z-10 inside the isolated <main>: above main's own background, below every section. */}
+      <div aria-hidden className="landing-dots pointer-events-none absolute inset-0 -z-10" />
       <Navbar />
       <Hero />
       <HowItWorks />
