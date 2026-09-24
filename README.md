@@ -4,8 +4,8 @@ Fair-value signals and one-click execution for Tessera's pre-IPO tokens on Solan
 
 **[Live app](https://basis-spread.vercel.app)** · Demo video (link coming) · [Stocklana hackathon](https://hackathons.solana.com/hackathons/stocklana)
 
-<!-- Hero screenshot: add the image at docs/screenshots/hero.png -->
-![Basis dashboard](docs/screenshots/hero.png)
+![Basis landing page: headline and a live dashboard preview framed in a MacBook](docs/screenshots/hero.png)
+*The landing page, with the dashboard preview in a MacBook frame.*
 
 ## The problem
 
@@ -34,14 +34,35 @@ T-Tokens are SPL Token-2022 mints on Solana mainnet (checked on-chain for all th
 ## Features
 
 - **Landing page:** product overview with a MacBook-framed dashboard preview.
+
+  ![How It Works section with three cards: Track Live Prices, Spot the Spread, Trade the Gap](docs/screenshots/how-it-works.png)
+  *How It Works: track live prices, spot the spread, trade the gap.*
+
 - **Overview:** per-token spread cards (mark, DEX, spread), a mark-vs-DEX history chart, live alerts, and a market activity table.
+
+  ![Overview dashboard in light mode](docs/screenshots/dashboard.png)
+  *The Overview dashboard with live spreads and alerts.*
+
 - **Markets:** every tracked token with totals (market cap, holders, average spread). Click a token for a candlestick chart (6H / 24H / 7D / All) built from stored snapshots.
+
+  ![Markets page with the T-OpenAI candlestick chart open](docs/screenshots/markets.png)
+  *Markets, with the T-OpenAI candlestick chart open.*
+
 - **Trade:** pick a token and see the spread banner (discount vs premium), a price chart, and a swap panel with Buy/Sell tabs, pay with SOL / USDC / USDT, 25% / 50% / 100% balance quick-fill, a live Jupiter quote with price impact, wallet signing, and a Solscan link on confirmation.
+
+  ![Trade page with T-OpenAI selected](docs/screenshots/trade.png)
+  *Trade with T-OpenAI selected: the spread banner, price chart and swap panel.*
+
 - **Spread History:** per-token highest / lowest / average spread, a full-width chart, and a paginated raw snapshot table.
 - **Alerts:** every token's current alert status, filterable by severity and token.
 - **Wallet:** connected address (copyable), SOL / USDC / USDT balances, and T-Token holdings read from the wallet's token accounts.
 - **Settings:** theme, default token and timeframe (used by Spread History), and alert-notification preferences (saved locally; nothing is sent yet).
 - **Light / dark mode** in the dashboard (light by default, saved per browser; the landing page is always dark), and **mobile-responsive** layouts.
+
+  <img src="docs/screenshots/mobile.png" alt="Landing page hero on a phone" width="280">
+
+  *The landing page at phone width.*
+
 - **Wallets:** Phantom and Solflare adapters; other Wallet Standard wallets are detected automatically.
 
 ## How it works
