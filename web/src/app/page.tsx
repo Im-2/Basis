@@ -2,6 +2,7 @@ import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
 import { Navbar } from "@/components/navbar";
 import { ProblemSolution } from "@/components/problem-solution";
+import { SiteFooter } from "@/components/site-footer";
 import { SpreadChartPreview } from "@/components/spread-chart-preview";
 import { TradeCTA } from "@/components/trade-cta";
 import { WhyItMatters } from "@/components/why-it-matters";
@@ -18,6 +19,7 @@ export default function Home() {
       <SpreadChartPreview />
       <WhyItMatters />
       <TradeCTA />
+      <SiteFooter />
     </main>
   );
 }

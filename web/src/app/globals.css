@@ -58,11 +58,20 @@ body {
   background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.05), transparent 40%);
 }
 
-.cta-glow {
+/* Painted on a pseudo-element faded in from the top: anchored at the
+   section's top-left corner, the glow is strongest exactly on the section's
+   top edge, which otherwise shows as a hard seam against the section above. */
+.cta-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 40%);
+  mask-image: linear-gradient(to bottom, transparent, black 35%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 35%);
 }
 
-.light-theme .cta-glow {
+.light-theme .cta-glow::before {
   background: radial-gradient(circle at top left, rgba(17, 17, 17, 0.035), transparent 40%);
 }
 
@@ -163,7 +172,10 @@ body {
 .dark-theme {
   --color-background: #0c0c0c;
   --color-foreground: #ffffff;
-  --color-muted: #989898;
+  /* A touch lighter than the global dark muted (#989898): these panels are
+     translucent glass over a light page, so their effective background is a
+     lighter charcoal (~#373737), and #989898 drops below ~4.5:1 on it. */
+  --color-muted: #a3a3a3;
   --color-white: #ffffff;
 
   --color-chart-mark: rgba(255, 255, 255, 0.35);
@@ -176,27 +188,94 @@ body {
 }
 
 /*
- * Same reasoning as .modal-panel above: a plain few-percent tint assumes
- * it's sitting on a page whose background already matches its own theme.
- * These inverted panels deliberately sit on the OPPOSITE page, so that
- * assumption breaks -- a 6% white tint over a light global page (or a 3%
- * black tint over a dark one) reads as washed-out/invisible instead of a
- * floating, contrasting panel. Compound selectors (not descendant) because
- * the theme class is merged directly onto the same element as
- * .glass-panel/.preview-invert-surface, never applied as their ancestor;
- * this also means these rules can never accidentally match the app-wide
- * .light-theme scope (that class lives on a plain wrapper div, not one
- * that also carries .glass-panel).
+ * Inverted glass cards. The usual .glass-panel tint (3-6%) assumes the page
+ * behind already matches the card's theme; these cards sit on the OPPOSITE
+ * page, so they need a much stronger tint to read as dark-on-light (or
+ * light-on-dark) while staying translucent. Compound selectors (not
+ * descendant) because the theme class is merged onto the same element as
+ * .glass-panel, never applied as its ancestor -- which also means these can
+ * never match the app-wide .light-theme wrapper div.
+ *
+ * The light variant mirrors the dark one (85% near-white) rather than a
+ * 8-12% white tint: over the near-black page that tint comes out dark gray,
+ * and the inverted card's text is dark.
  */
-.dark-theme.glass-panel,
-.light-theme.glass-panel,
-.dark-theme.preview-invert-surface,
-.light-theme.preview-invert-surface {
-  background: color-mix(in srgb, var(--color-background) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-white) 10%, transparent);
+.dark-theme.glass-panel {
+  background: rgba(20, 20, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.35);
 }
 
-.preview-invert-surface {
-  @apply backdrop-blur-lg;
-  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.35);
+.light-theme.glass-panel {
+  background: rgba(250, 250, 250, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.6);
+}
+
+/* Panels nested inside an inverted card: one step more transparent than
+   the card itself, a faint inset rather than a second solid block. No
+   backdrop-filter of their own: nested inside the card's blur, it samples a
+   transparent backdrop and turns the panel darker, not lighter. */
+.dark-theme.preview-invert-surface {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.light-theme.preview-invert-surface {
+  background: rgba(17, 17, 17, 0.035);
+  border: 1px solid rgba(17, 17, 17, 0.07);
+}
+
+/*
+ * MacBook frame around the hero dashboard preview (dashboard-preview/index.tsx).
+ * The bezel is black in both themes, like the real thing; the aluminum edge
+ * and base follow the page theme (silver in light mode, graphite in dark).
+ */
+.laptop-lid {
+  background: #0b0b0d;
+  box-shadow:
+    0 0 0 1.5px #3a3b3f,
+    0 30px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+.light-theme .laptop-lid {
+  box-shadow:
+    0 0 0 1.5px #c3c5ca,
+    0 30px 60px -24px rgba(17, 17, 17, 0.35);
+}
+
+.laptop-base {
+  background: linear-gradient(to bottom, #3c3d42, #2a2b2f 55%, #18191c);
+  box-shadow: 0 18px 30px -18px rgba(0, 0, 0, 0.8);
+}
+
+.light-theme .laptop-base {
+  background: linear-gradient(to bottom, #eceef1, #cfd1d6 55%, #a8abb1);
+  box-shadow: 0 18px 30px -18px rgba(17, 17, 17, 0.45);
+}
+
+.laptop-notch {
+  background: linear-gradient(to bottom, #151518, #26272b);
+}
+
+.light-theme .laptop-notch {
+  background: linear-gradient(to bottom, #9a9da3, #bfc1c6);
+}
+
+/* The footer's blue bloom rising from the bottom -- identical in both themes. */
+/* The solid core reaches high enough that the footer's link row always sits
+   on full-strength blue; only the padded top of the panel is the fade. */
+.footer-glow {
+  background: radial-gradient(
+    140% 120% at 50% 100%,
+    #1d4ed8 0%,
+    var(--color-accent) 42%,
+    var(--color-accent) 64%,
+    color-mix(in srgb, var(--color-accent) 45%, transparent) 76%,
+    transparent 88%
+  );
+  /* Fade in over the panel's empty top padding -- the ellipse is still faintly
+     tinted at the panel's top edge, which otherwise shows as a straight line. */
+  mask-image: linear-gradient(to bottom, transparent, black 160px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 160px);
 }
