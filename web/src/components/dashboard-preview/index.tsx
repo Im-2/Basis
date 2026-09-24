@@ -8,57 +8,76 @@ import { SpreadHistoryChart } from "./spread-history-chart";
 import { StatCard } from "./stat-card";
 import { TopBar } from "./top-bar";
 
-/** The hero's live dashboard mockup, framed as a MacBook (CSS only -- the screen contents are the real components). */
+/**
+ * The hero's live dashboard mockup inside a CSS-only MacBook Air (front view).
+ * Every frame dimension is in cqw of the device width, so the whole thing
+ * scales proportionally; the screen contents are the real components.
+ */
 export function DashboardPreview() {
   const invertedTheme = useInvertedThemeClass();
 
   return (
-    <div className="relative">
-      {/* Lid: black bezel (thicker at the top, for the camera) around the screen. */}
-      <div className="laptop-lid relative rounded-t-[14px] rounded-b-[4px] p-[5px] pt-[9px] sm:rounded-t-[26px] sm:p-3 sm:pt-[18px]">
-        <span
-          aria-hidden
-          className="absolute left-1/2 top-[3px] h-1 w-1 -translate-x-1/2 rounded-full bg-[#1c1d21] ring-1 ring-[#2a2b30] sm:top-[7px] sm:h-1.5 sm:w-1.5"
-        />
-
-        {/* Screen: always the opposite of the page theme. Solid, not glass -- it's a display. */}
+    <div className="@container relative">
+      {/* Lid: thin black bezel inside an aluminum rim. */}
+      <div className="laptop-lid relative mx-auto w-[86cqw] rounded-t-[2.2cqw] rounded-b-[0.3cqw] p-[1cqw]">
+        {/* Screen: always the opposite of the page theme. */}
         <div
-          className={`relative max-h-[215px] overflow-hidden rounded-t-[8px] rounded-b-[2px] bg-background sm:max-h-none sm:rounded-t-[14px] ${invertedTheme}`}
+          className={`relative aspect-[1.55] overflow-hidden rounded-t-[0.9cqw] rounded-b-[0.2cqw] bg-background ${invertedTheme}`}
         >
-          <div className="flex">
-            <Sidebar />
+          {/* Starts a menu-bar-height band below the top, so the notch never covers the dashboard's top bar. */}
+          <div className="absolute inset-x-0 bottom-0 top-[1.5cqw] overflow-hidden">
+            <div className="laptop-screen-content flex">
+              <Sidebar />
 
-            <div className="min-w-0 flex-1">
-              <TopBar />
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <TopBar />
 
-              <div className="p-6">
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                  {heroStats.map(({ key, ...stat }) => (
-                    <StatCard key={key} {...stat} />
-                  ))}
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-                  <div className="lg:col-span-2">
-                    <SpreadHistoryChart data={spreadHistory} symbol={spreadHistorySymbol} />
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    {heroStats.map(({ key, ...stat }) => (
+                      <StatCard key={key} {...stat} />
+                    ))}
                   </div>
-                  <PriceAlerts alerts={priceAlerts} />
+
+                  <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <div className="lg:col-span-2">
+                      <SpreadHistoryChart data={spreadHistory} symbol={spreadHistorySymbol} />
+                    </div>
+                    <PriceAlerts alerts={priceAlerts} />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* The content fades into the screen's own color, so the bezel and base stay fully visible. */}
+          {/* Content fades into the screen's own color; the device itself stays fully visible. */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-b from-transparent to-background"
           />
+
+          {/* Camera notch, cut down from the top bezel over the screen, above everything. */}
+          <div
+            aria-hidden
+            className="absolute left-1/2 top-0 z-10 flex h-[1.4cqw] w-[10.5cqw] -translate-x-1/2 items-center justify-center rounded-b-[0.7cqw] bg-[#0a0a0c]"
+          >
+            <span className="laptop-lens h-[0.45cqw] min-h-[2px] w-[0.45cqw] min-w-[2px] rounded-full" />
+          </div>
         </div>
       </div>
 
-      {/* Base: slightly wider than the lid, with the thumb indent where the lid opens. */}
-      <div className="laptop-base relative -mx-[3%] h-[10px] rounded-b-[10px] rounded-t-[2px] sm:h-[18px] sm:rounded-b-[22px]">
-        <span aria-hidden className="laptop-notch absolute left-1/2 top-0 h-1/2 w-[14%] -translate-x-1/2 rounded-b-[6px]" />
+      {/* Hinge band below the bottom bezel. Overlaps the lid by the rim's width so the rim wraps
+          the top and sides but not the bottom edge, like the real thing. */}
+      <div
+        aria-hidden
+        className="laptop-hinge relative mx-auto -mt-[max(1px,0.2cqw)] h-[1.3cqw] w-[86cqw] rounded-b-[0.25cqw]"
+      />
+
+      {/* Base: full device width, thumb scoop at the front edge, rubber feet underneath. */}
+      <div aria-hidden className="laptop-base relative h-[1.9cqw] rounded-t-[0.35cqw] rounded-b-[1.3cqw]">
+        <span className="laptop-scoop absolute left-1/2 top-0 h-[55%] w-[16%] -translate-x-1/2 rounded-b-[0.8cqw]" />
+        <span className="laptop-foot absolute left-[3%] top-full h-[0.45cqw] w-[7%] rounded-b-full" />
+        <span className="laptop-foot absolute right-[3%] top-full h-[0.45cqw] w-[7%] rounded-b-full" />
       </div>
     </div>
   );
