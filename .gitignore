@@ -2,3 +2,7 @@ node_modules/
 dist/
 data/
 .env
+
+# Demo video build output (large media); only the script is tracked
+docs/demo/*
+!docs/demo/script.md
