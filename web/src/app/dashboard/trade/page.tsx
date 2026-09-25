@@ -431,6 +431,25 @@ function SwapPanel({
 
   const receiveAmount =
     activeOrder && receiveDecimals !== null ? Number(activeOrder.outAmount) / 10 ** receiveDecimals : null;
+
+  // Price impact = this quote's effective price vs the live DEX price, in %
+  // (positive = worse than the DEX price). Built from the settlement-token
+  // side, which Jupiter values reliably; its own priceImpact field compares
+  // USD valuations that don't track T-Token pool prices.
+  let priceImpactPct: number | null = null;
+  if (activeOrder && payDecimals !== null && receiveDecimals !== null && token.dexPrice > 0) {
+    if (side === "buy") {
+      const tokensOut = Number(activeOrder.outAmount) / 10 ** receiveDecimals;
+      if (tokensOut > 0 && activeOrder.inUsdValue) {
+        priceImpactPct = (activeOrder.inUsdValue / tokensOut / token.dexPrice - 1) * 100;
+      }
+    } else {
+      const tokensIn = Number(activeOrder.inAmount) / 10 ** payDecimals;
+      if (tokensIn > 0 && activeOrder.outUsdValue) {
+        priceImpactPct = (1 - activeOrder.outUsdValue / tokensIn / token.dexPrice) * 100;
+      }
+    }
+  }
   const serverError = activeOrder?.transaction === "" && activeOrder.errorCode !== undefined;
 
   async function handleSwap() {
@@ -580,12 +599,11 @@ function SwapPanel({
           </div>
         </div>
 
-        {activeOrder && !serverError && (
+        {activeOrder && !serverError && priceImpactPct !== null && (
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted">Price impact</span>
-            <span className={Math.abs(activeOrder.priceImpact) > 1 ? "text-red-500" : "text-white"}>
-              {activeOrder.priceImpact >= 0 ? "+" : ""}
-              {activeOrder.priceImpact.toFixed(3)}%
+            <span className="text-muted">Price impact vs DEX</span>
+            <span className={Math.abs(priceImpactPct) > 1 ? "text-red-500" : "text-white"}>
+              {priceImpactPct.toFixed(2)}%
             </span>
           </div>
         )}

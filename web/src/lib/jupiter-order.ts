@@ -31,8 +31,15 @@ export interface OrderResponse {
   outputMint: string;
   inAmount: string;
   outAmount: string;
-  /** Price impact in percentage points, e.g. -0.1 means -0.1%. */
+  /**
+   * Jupiter's USD value of the output vs the input, in percentage points. Not
+   * slippage: for T-Tokens its USD valuation doesn't track the pool price, so
+   * a normal buy can show +30%. The Trade page computes price impact itself.
+   */
   priceImpact: number;
+  /** USD value of the input and output, per Jupiter's own pricing. */
+  inUsdValue?: number;
+  outUsdValue?: number;
   otherAmountThreshold: string;
   router: "metis" | "jupiterz" | "dflow" | "okx";
   /** Base64-encoded unsigned transaction. Null if no taker was provided; "" if the router couldn't build one (see errorCode). */
