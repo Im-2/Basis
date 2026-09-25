@@ -43,7 +43,7 @@ T-Tokens are SPL Token-2022 mints on Solana mainnet (checked on-chain for all th
   ![Overview dashboard in light mode](docs/screenshots/dashboard.png)
   *The Overview dashboard with live spreads and alerts.*
 
-- **Markets:** every tracked token with totals (market cap, holders, average spread). Click a token for a candlestick chart (6H / 24H / 7D / All) built from stored snapshots.
+- **Markets:** every tracked token with totals (market cap, holders, average spread). Click a token for a candlestick chart of its real trading history (6H / 24H / 7D, and All back to its first trading day), from GeckoTerminal's candles for the token's main Meteora pool.
 
   ![Markets page with the T-OpenAI candlestick chart open](docs/screenshots/markets.png)
   *Markets, with the T-OpenAI candlestick chart open.*
@@ -81,6 +81,8 @@ flowchart LR
     JS --> SOL[("Solana mainnet")]
     UI -- "balances, token accounts" --> RPC["Helius RPC"]
     RPC --> SOL
+    GT["GeckoTerminal<br/>historical OHLCV"] --> OH["Next.js /api/ohlcv<br/>cached"]
+    OH --> UI
 ```
 
 The web app imports the backend modules directly (compiled to `dist/`), so the API route and the CLI poller share one implementation.
@@ -96,13 +98,14 @@ The web app imports the backend modules directly (compiled to `dist/`), so the A
 | `web/src/lib/jupiter-order.ts` | Swap API v2: `/order` builds the transaction, the wallet signs it, `/execute` submits it. |
 | `web/src/app/dashboard/use-wallet.tsx` | SOL / USDC / USDT balances over the configured RPC. |
 | `web/src/lib/alerts.ts` | Alert thresholds and severity. |
-| `web/src/app/dashboard/_components/candlestick-modal.tsx` | Buckets stored price snapshots into OHLC candles. |
+| `web/src/app/api/ohlcv/route.ts` | Serves historical candles for each T-Token's main Meteora pool from GeckoTerminal, cached (5 minutes intraday, 1 hour daily) to stay under its rate limit. |
+| `web/src/app/dashboard/_components/candlestick-modal.tsx` | Candlestick chart: GeckoTerminal candles, plus our own snapshots only where they're newer than its latest candle. Falls back to candles built from our snapshots if GeckoTerminal is unavailable. |
 
 ## Data integrity
 
 - **The dashboard is live.** Mark price comes from Tessera, DEX price from Jupiter, and the spread is computed from both on every request. History comes from real stored snapshots. Nothing in the dashboard is simulated.
 - **Upstream outages don't produce fake data.** If Tessera or Jupiter is unreachable, the API returns the last stored snapshot per token, flagged as stale, and the Overview shows a banner saying cached figures are being shown. If there's no stored snapshot either, the dashboard says no data is available.
-- **Candles are derived, not exchange-native.** They're OHLC buckets of our stored DEX price snapshots.
+- **Candles are real trade history.** The Markets chart uses GeckoTerminal's candles for each token's main Meteora pool, priced in USD for the T-Token itself (when checked, the latest close was within 0.3% of Jupiter's price). Intervals with no trades are left empty, not filled in. If GeckoTerminal is unavailable, the chart falls back to candles built from our own snapshots, and the label under the chart says which source you're looking at.
 - **The landing page uses sample numbers.** Its product previews (the hero dashboard, How It Works, Watch The Gap Move, and the closing-CTA spread pills) use illustrative figures from `web/src/lib/dashboard-data.ts`. The only live element on the landing page is the footer's live-status block.
 
 ## Tech stack
@@ -111,6 +114,7 @@ The web app imports the backend modules directly (compiled to `dist/`), so the A
 - `@solana/wallet-adapter` (react, react-ui, wallets), `@solana/web3.js`
 - Jupiter Price API v3 and Swap API v2 (order / execute)
 - Tessera public REST API
+- GeckoTerminal public API (historical OHLCV candles)
 - Helius RPC (Solana mainnet)
 - Recharts (line and area charts), Lightweight Charts by TradingView (candlesticks), Framer Motion, Lucide icons
 - Backend scripts on Node with `tsx`
@@ -167,7 +171,8 @@ History lives in `data/snapshots.jsonl`, which is gitignored, so a fresh clone s
 - **Transaction history** isn't stored; confirmations link to Solscan.
 - **No platform fee** is implemented yet.
 - **New Tessera listings get partial support.** The data pipeline picks them up automatically (it reads Tessera's full token list), but the UI has hand-added icons for the current three, so a new token shows a fallback icon.
-- **Rate limits.** Jupiter is used on its keyless, rate-limited tiers unless `JUPITER_API_KEY` is set.
+- **Rate limits.** Jupiter is used on its keyless, rate-limited tiers unless `JUPITER_API_KEY` is set. GeckoTerminal's public API allows about 10 calls a minute; responses are cached, but on a cold cache the All view can come back shorter than full history if the limit is hit partway through.
+- **Full history is on the Markets chart only.** The Trade and Spread History charts still use our own snapshots: they pair the DEX price with mark price, and Tessera doesn't publish mark price history.
 - **No automated tests** yet.
 
 ## Roadmap
@@ -185,6 +190,7 @@ Built for the Stocklana hackathon (Solana Foundation): Main Track and the Tesser
 - **Tessera:** T-Tokens and the public token-details API (mark price, holders, valuation)
 - **Jupiter:** Price API v3 and Swap API v2 for pricing and execution
 - **Helius:** mainnet RPC
+- **GeckoTerminal:** historical OHLCV candles for the Markets chart
 - **Meteora:** the DLMM pools T-Token trades settle on
 
 Open-source components used:

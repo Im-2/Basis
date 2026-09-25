@@ -10,6 +10,13 @@ import { dashboardSpreadColorClass } from "@/lib/spread-color";
 import { OpenAIIcon, KalshiIcon, SpaceXIcon } from "@/components/token-icons";
 import { useTheme } from "@/lib/theme";
 import type { SpreadRecord } from "@/lib/dashboard-api-types";
+import {
+  CANDLE_SECONDS,
+  CANDLE_TIMEFRAMES,
+  type CandleTimeframe,
+  type OhlcvCandle,
+  type OhlcvResponse,
+} from "@/lib/ohlcv-types";
 
 const tokenIcon: Record<string, ComponentType<{ className?: string }>> = {
   "T-OpenAI": OpenAIIcon,
@@ -17,14 +24,22 @@ const tokenIcon: Record<string, ComponentType<{ className?: string }>> = {
   "T-SpaceX": SpaceXIcon,
 };
 
-// Bucket size scales with the window so each timeframe renders a sensible
-// number of candles from our point-in-time snapshots (not native OHLC data).
-const candleTimeframes = [
-  { label: "6H", rangeMs: 6 * 60 * 60 * 1000, bucketMs: 15 * 60 * 1000 },
-  { label: "24H", rangeMs: 24 * 60 * 60 * 1000, bucketMs: 60 * 60 * 1000 },
-  { label: "7D", rangeMs: 7 * 24 * 60 * 60 * 1000, bucketMs: 4 * 60 * 60 * 1000 },
-  { label: "All", rangeMs: Infinity, bucketMs: 24 * 60 * 60 * 1000 },
-] as const;
+// Fallback only, for when the historical-candle provider is unavailable:
+// candles bucketed from our own stored snapshots (not native OHLC data).
+const SNAPSHOT_RANGE_MS: Record<CandleTimeframe, number> = {
+  "6H": 6 * 60 * 60 * 1000,
+  "24H": 24 * 60 * 60 * 1000,
+  "7D": 7 * 24 * 60 * 60 * 1000,
+  All: Infinity,
+};
+const SNAPSHOT_BUCKET_MS: Record<CandleTimeframe, number> = {
+  "6H": 15 * 60 * 1000,
+  "24H": 60 * 60 * 1000,
+  "7D": 4 * 60 * 60 * 1000,
+  All: 24 * 60 * 60 * 1000,
+};
+
+type ProviderResult = { ok: true; data: OhlcvResponse } | { ok: false };
 
 interface Candle {
   time: UTCTimestamp;
@@ -85,6 +100,47 @@ function buildCandles(
     }));
 }
 
+/**
+ * The provider's candles, plus our own snapshots only where they're newer
+ * than its last candle (bucketed at the same candle size). The provider
+ * stays the source of truth for every interval it covers.
+ */
+function appendNewerSnapshots(
+  candles: OhlcvCandle[],
+  history: SpreadRecord[],
+  symbol: string,
+  candleSeconds: number,
+): { candles: Candle[]; appended: boolean } {
+  const result: Candle[] = candles.map((c) => ({ ...c, time: c.time as UTCTimestamp }));
+  if (candles.length === 0) return { candles: result, appended: false };
+
+  const nextCandleStart = candles[candles.length - 1].time + candleSeconds;
+  const newer = history
+    .filter((r) => r.symbol === symbol)
+    .map((r) => ({ t: Math.floor(new Date(r.fetchedAt).getTime() / 1000), price: r.dexPrice }))
+    .filter((p) => p.t >= nextCandleStart)
+    .sort((a, b) => a.t - b.t);
+  if (newer.length === 0) return { candles: result, appended: false };
+
+  const buckets = new Map<number, number[]>();
+  for (const p of newer) {
+    const start = Math.floor(p.t / candleSeconds) * candleSeconds;
+    const bucket = buckets.get(start);
+    if (bucket) bucket.push(p.price);
+    else buckets.set(start, [p.price]);
+  }
+  for (const [start, prices] of buckets) {
+    result.push({
+      time: start as UTCTimestamp,
+      open: prices[0],
+      high: Math.max(...prices),
+      low: Math.min(...prices),
+      close: prices[prices.length - 1],
+    });
+  }
+  return { candles: result, appended: true };
+}
+
 export function CandlestickModal({
   token,
   history,
@@ -101,31 +157,52 @@ export function CandlestickModal({
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 
-  // Candle count per timeframe, so the initial pick and the empty state can
-  // both reason about which windows actually have data -- data density
-  // varies a lot right after a deploy (a fresh serverless instance's
-  // snapshot store starts near-empty and only fills back up from traffic).
-  const candlesByTimeframe = useMemo(() => {
-    const map = new Map<(typeof candleTimeframes)[number]["label"], Candle[]>();
-    for (const t of candleTimeframes) {
-      map.set(t.label, buildCandles(history, token.symbol, t.rangeMs, t.bucketMs, now));
-    }
-    return map;
-  }, [history, token.symbol, now]);
+  // 7D (hourly candles) reads best with real trading history: a full week of
+  // candles for every token, including the thinly traded ones.
+  const [timeframe, setTimeframe] = useState<CandleTimeframe>("7D");
+  const [provider, setProvider] = useState<Record<string, ProviderResult>>({});
+  const key = `${token.mint}:${timeframe}`;
+  const result = provider[key];
 
-  // Default to the shortest timeframe that actually has a candle, rather
-  // than always landing on 24H -- with a sparse store (e.g. right after a
-  // cold start), 24H may have nothing yet while 6H already does.
-  const [timeframe, setTimeframe] = useState<(typeof candleTimeframes)[number]["label"]>(() => {
-    const withData = candleTimeframes.find((t) => (candlesByTimeframe.get(t.label)?.length ?? 0) > 0);
-    return withData?.label ?? "24H";
-  });
+  // Historical candles come from our own API route (which caches the
+  // provider), never from the provider directly.
+  useEffect(() => {
+    if (provider[key]) return;
+    let cancelled = false;
+    fetch(`/api/ohlcv?mint=${encodeURIComponent(token.mint)}&timeframe=${timeframe}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`OHLCV request failed with ${res.status}`);
+        return (await res.json()) as OhlcvResponse;
+      })
+      .then((data) => {
+        if (!cancelled) setProvider((p) => ({ ...p, [key]: { ok: true, data } }));
+      })
+      .catch(() => {
+        if (!cancelled) setProvider((p) => ({ ...p, [key]: { ok: false } }));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [key, provider, token.mint, timeframe]);
+
+  const view = useMemo(() => {
+    if (!result) return { candles: [] as Candle[], source: null, state: "loading" as const };
+    if (result.ok) {
+      const merged = appendNewerSnapshots(result.data.candles, history, token.symbol, CANDLE_SECONDS[timeframe]);
+      return {
+        candles: merged.candles,
+        source: `Source: GeckoTerminal, ${result.data.pool} pool${merged.appended ? ", plus newer Basis snapshots" : ""}`,
+        state: "provider" as const,
+      };
+    }
+    return {
+      candles: buildCandles(history, token.symbol, SNAPSHOT_RANGE_MS[timeframe], SNAPSHOT_BUCKET_MS[timeframe], now),
+      source: "Source: Basis snapshots (historical candles unavailable right now)",
+      state: "fallback" as const,
+    };
+  }, [result, history, token.symbol, timeframe, now]);
 
   const Icon = tokenIcon[token.symbol] ?? OpenAIIcon;
-  const candles = useMemo(() => candlesByTimeframe.get(timeframe) ?? [], [candlesByTimeframe, timeframe]);
-  const nextWithData = candleTimeframes.find(
-    (t) => t.label !== timeframe && (candlesByTimeframe.get(t.label)?.length ?? 0) > 0,
-  );
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -183,11 +260,14 @@ export function CandlestickModal({
     };
   }, [theme]);
 
+  // fitContent spreads whatever candles exist across the full width, so a
+  // sparse window shows gaps rather than one stretched bar. `theme` is a dep
+  // because a theme change rebuilds the chart, which needs its data again.
   useEffect(() => {
     if (!seriesRef.current) return;
-    seriesRef.current.setData(candles);
+    seriesRef.current.setData(view.candles);
     chartRef.current?.timeScale().fitContent();
-  }, [candles]);
+  }, [view.candles, theme]);
 
   const positive = token.spreadPct >= 0;
 
@@ -237,16 +317,16 @@ export function CandlestickModal({
 
         <div className="mt-5 flex justify-end">
           <div className="flex gap-1 rounded-full border border-white/10 p-1">
-            {candleTimeframes.map((t) => (
+            {CANDLE_TIMEFRAMES.map((t) => (
               <button
-                key={t.label}
+                key={t}
                 type="button"
-                onClick={() => setTimeframe(t.label)}
+                onClick={() => setTimeframe(t)}
                 className={`rounded-full px-3 py-1 text-xs transition ${
-                  timeframe === t.label ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
+                  timeframe === t ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
                 }`}
               >
-                {t.label}
+                {t}
               </button>
             ))}
           </div>
@@ -254,19 +334,12 @@ export function CandlestickModal({
 
         <div className="relative mt-4 h-80">
           <div ref={containerRef} className="h-full w-full rounded-xl border border-white/5 bg-white/[0.03]" />
-          {candles.length === 0 && (
+          {view.candles.length === 0 && (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-xl text-center">
-              {nextWithData ? (
-                <>
-                  <p className="text-sm text-white/70">Not enough {timeframe} history yet for {token.symbol}.</p>
-                  <button
-                    type="button"
-                    onClick={() => setTimeframe(nextWithData.label)}
-                    className="pointer-events-auto mt-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white transition hover:bg-white/5"
-                  >
-                    Switch to {nextWithData.label} →
-                  </button>
-                </>
+              {view.state === "loading" ? (
+                <p className="text-sm text-white/70">Loading candles…</p>
+              ) : view.state === "provider" ? (
+                <p className="text-sm text-white/70">No trades in this window.</p>
               ) : (
                 <>
                   <p className="text-sm text-white/70">Building candle history. Check back soon.</p>
@@ -276,6 +349,7 @@ export function CandlestickModal({
             </div>
           )}
         </div>
+        {view.source && <p className="mt-2 text-[11px] text-muted">{view.source}</p>}
 
         <Link
           href={`/dashboard/trade?token=${encodeURIComponent(token.symbol)}`}
